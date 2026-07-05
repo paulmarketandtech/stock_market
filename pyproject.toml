@@ -1,0 +1,21 @@
+[project]
+name = "stock-market"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "sqlalchemy>=2.0",
+  "yfinance",
+  "tradingview-ta",
+  "python-telegram-bot",
+  "python-dotenv",
+  "pandas",
+  "numpy",
+  "requests",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
