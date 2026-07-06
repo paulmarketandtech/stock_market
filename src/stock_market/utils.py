@@ -6,13 +6,10 @@ from typing import Dict
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
-from database import get_session
-from models.models import AllTickersMonthlyUpdate
+from stock_market.db_hub.models import AllTickersMonthlyUpdate
+from stock_market.db_hub.session import DATABASE_URL, get_session, init_db
 
 load_dotenv()
-
-previous_day = date.today() - timedelta(days=1)
-
 YTD_DATE = date(2026, 1, 2)
 PREVIOUS_CORRECTION_DATE = date(2024, 11, 5)
 LAST_CORRECTION_DATE = date(2025, 4, 7)
@@ -30,11 +27,24 @@ but in the future 2B will probably be gone and 5B will be dynamic
 """
 
 
+def get_previous_day() -> date:
+    return date.today() - timedelta(days=1)
+
+
+with get_session() as db:
+    list_of_tickers = [
+        t.ticker
+        for t in db.query(AllTickersMonthlyUpdate)
+        .filter(AllTickersMonthlyUpdate.market_cap > 2_000_000_000)
+        .all()
+    ]
+    print(list_of_tickers[:5])
+
+
 def creating_list_of_tickers_2B(
     list_of_indexes: list[str],
     list_of_commodities: list[str],
     list_of_etfs: list[str],
-    session: Session,
 ) -> list[str]:
     list_of_tickers = [
         t.ticker
@@ -180,13 +190,11 @@ list_of_etfs = [
     "BOTZ",
 ]
 
-session = get_session()
-
+"""
 list_of_tickers_2B = creating_list_of_tickers_2B(
-    list_of_indexes, list_of_commodities, list_of_etfs, session
+    list_of_indexes, list_of_commodities, list_of_etfs
 )
 list_of_tickers_5B = creating_list_of_tickers_5B()
 list_of_tickers_nasdaq = creating_list_of_tickers_nasdaq()
 list_of_tickers_nyse = creating_list_of_tickers_nyse()
-
-session.close()
+"""
