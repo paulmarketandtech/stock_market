@@ -3,13 +3,11 @@ import os
 from datetime import date, timedelta
 from typing import Dict
 
-from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
 from stock_market.db_hub.models import AllTickersMonthlyUpdate
 from stock_market.db_hub.session import DATABASE_URL, get_session, init_db
 
-load_dotenv()
 YTD_DATE = date(2026, 1, 2)
 PREVIOUS_CORRECTION_DATE = date(2024, 11, 5)
 LAST_CORRECTION_DATE = date(2025, 4, 7)
@@ -31,6 +29,17 @@ def get_previous_day() -> date:
     return date.today() - timedelta(days=1)
 
 
+def get_large_cap_tickers(min_market_cap: int = 2_000_000_000) -> list[str]:
+    with get_session() as db:
+        rows = (
+            db.query(AllTickersMonthlyUpdate)
+            .filter(AllTickersMonthlyUpdate.market_cap > min_market_cap)
+            .all()
+        )
+        return [t.ticker for t in rows]
+
+
+"""
 with get_session() as db:
     list_of_tickers = [
         t.ticker
@@ -38,7 +47,8 @@ with get_session() as db:
         .filter(AllTickersMonthlyUpdate.market_cap > 2_000_000_000)
         .all()
     ]
-    print(list_of_tickers[:5])
+    # print(list_of_tickers[:5])
+"""
 
 
 def creating_list_of_tickers_2B(

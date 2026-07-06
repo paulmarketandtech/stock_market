@@ -11,6 +11,8 @@ dependencies = [
   "pandas",
   "numpy",
   "requests",
+  "tqdm>=4.68.3",
+  "pyarrow>=24.0.0",
 ]
 
 [build-system]

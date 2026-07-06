@@ -5,8 +5,17 @@ build/
 dist/
 wheels/
 *.egg-info
+data_lake/
 
 # Virtual environments
 .venv
 .env
 db_storage/
+*.db
+*.sqlite
+*.parquet
+
+# extra stuff
+*.csv
+*.sh
+market_breadth_screens/
