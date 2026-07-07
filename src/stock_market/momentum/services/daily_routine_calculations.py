@@ -18,51 +18,43 @@ weekly change is calculated everyday.
 it should be counted everyday, but only displayed on Sat? have to think this through
 """
 
+from typing import List, Tuple
+
 from stock_market.db_hub.models import StockData
-from stock_market.momentum.services.standard_returns.ytd_returns import (
-    count_ytd_returns,
+from stock_market.momentum.services.standard_returns.fridays_returns import (
+    count_returns_from_fridays_to_date,
+    get_four_weeks_ago_friday,
+    get_previous_friday,
+)
+from stock_market.momentum.services.standard_returns.helper_functions import (
+    get_yesterdays_data,
+)
+from stock_market.momentum.services.standard_returns.last_correction_and_ytd_returns import (
+    count_returns_from_given_date_to_date,
 )
 
 
-def get_last_correction_opening_prices(session, correction_date):
-    list_of_tickers = [
-        t.ticker
-        for t in session.query(StockData)
-        .filter(StockData.date == correction_date)
-        .all()
-    ]
-    return list_of_tickers
+def count_daily_routine_returns(
+    session, previous_day: str, ytd_date: str, correction_date: str
+):
 
-
-def get_ytd_tickers_list(session, ytd_date):
-    return [
-        t.ticker
-        for t in session.query(StockData).filter(StockData.date == ytd_date).all()
-    ]
-
-
-def get_yesterday_closing_prices(session, last_date):
-    list_of_tickers = (
-        session.query(StockData.ticker, StockData.close)
-        .filter(StockData.date == "2026-07-06")
-        .all()
+    yesterday_data = get_yesterdays_data(session, previous_day)
+    previous_friday = get_previous_friday(session)
+    print(f"prev: {previous_friday}")
+    current_week_returns = count_returns_from_fridays_to_date(
+        session, yesterday_data, previous_friday
     )
-    return list_of_tickers
+    ytd_returns = count_returns_from_given_date_to_date(
+        session, yesterday_data, ytd_date
+    )
+    correction_returns = count_returns_from_given_date_to_date(
+        session, yesterday_data, correction_date
+    )
+    from datetime import datetime
 
-
-def get_four_weeks_ago_friday_close():
-    pass
-
-
-def count_daily_routine_returns(session, previous_day, ytd_date, correction_date):
-
-    # yesterdays_closing_prices = get_yesterday_closing_prices(session, previous_day)
-    ytd_tickers_list = get_ytd_tickers_list(session, ytd_date)
-    count_ytd_returns(session, previous_day, ytd_date, ytd_tickers_list[:20])
-
-
-from datetime import datetime
-
-today = datetime.today().strftime("%A")
-if today.lower() == "saturday":
-    get_four_weeks_ago_friday_close()
+    today = datetime.today().strftime("%A")
+    if today.lower() == "saturday":
+        four_weeks_ago_friday = get_four_weeks_ago_friday_close(session)
+        four_weeks_returns = count_returns_from_fridays_to_date(
+            session, yesterday_data, four_weeks_ago_friday
+        )

@@ -39,7 +39,6 @@ def populate_db_from_files(run_date) -> None:
 
 
 def main():
-    print("Hello from stock market!")
     with get_session() as session:
         # list_of_tickers = get_large_cap_tickers()
         # yf download works - just clean the code
