@@ -9,7 +9,6 @@ from stock_market.db_hub.models import AllTickersMonthlyUpdate
 from stock_market.db_hub.session import DATABASE_URL, get_session, init_db
 
 YTD_DATE = date(2026, 1, 2)
-PREVIOUS_CORRECTION_DATE = date(2024, 11, 5)
 LAST_CORRECTION_DATE = date(2025, 4, 7)
 
 logging.basicConfig(

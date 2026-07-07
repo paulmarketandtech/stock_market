@@ -2,10 +2,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 from stock_market.config import fundamentals_file_path, ohlc_file_path
+from stock_market.db_hub.session import get_session
 from stock_market.integrations import yfinance_client
 from stock_market.momentum.repositories.ohlc_repo import read_parquet_file, save_ohlc
+from stock_market.momentum.services.daily_routine_calculations import (
+    count_daily_routine_returns,
+)
 from stock_market.storage.parquet_io import read_parquet, write_parquet
-from stock_market.utils import get_large_cap_tickers, get_previous_day
+from stock_market.utils import (
+    LAST_CORRECTION_DATE,
+    YTD_DATE,
+    get_large_cap_tickers,
+    get_previous_day,
+)
 
 
 def run_ohlc_extract(tickers: list[str]) -> None:
@@ -31,11 +40,15 @@ def populate_db_from_files(run_date) -> None:
 
 def main():
     print("Hello from stock market!")
-    list_of_tickers = get_large_cap_tickers()
-    # yf download works - just clean the code
-    # run_ohlc_extract(list_of_tickers[:100])
-    # db populations works - just clean the code
-    # populate_db_from_files(get_previous_day())
+    with get_session() as session:
+        # list_of_tickers = get_large_cap_tickers()
+        # yf download works - just clean the code
+        # run_ohlc_extract(list_of_tickers[:100])
+        # db populations works - just clean the code
+        # populate_db_from_files(get_previous_day())
+        count_daily_routine_returns(
+            session, get_previous_day(), YTD_DATE, LAST_CORRECTION_DATE
+        )
     # DONT run fundamentals for now. have to write the whole logic of DB populating
     # run_fundamentals_extract(list_of_tickers[:50])
 
