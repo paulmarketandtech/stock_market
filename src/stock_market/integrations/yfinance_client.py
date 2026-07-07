@@ -20,10 +20,7 @@ BATCH_SIZE = 100  # Smaller for .info (more heavy request)
 SLEEP_BETWEEN = 10
 
 
-# ====================== 1. OHCLV Download ======================
-
 import logging
-import time
 
 logger = logging.getLogger(__name__)
 print(f"logger from YF: {logger}")
@@ -40,14 +37,14 @@ COLUMN_RENAME = {
 }
 
 
-def fetch_ohcl_batch(tickers: list[str]) -> pd.DataFrame:
-    """Download OHCL for a batch of tickers, return long format:
+def fetch_ohlc_batch(tickers: list[str]) -> pd.DataFrame:
+    """Download OHLC for a batch of tickers, return long format:
     [ticker, date, open, high, low, close, volume]
     """
     raw = yf.download(
         tickers=tickers,
-        start=date.today() - timedelta(days=4),
-        end=date.today() - timedelta(days=3),
+        start=date.today() - timedelta(days=1),
+        end=date.today(),
         group_by="ticker",
         auto_adjust=False,
         threads=False,
@@ -79,7 +76,7 @@ def fetch_ohcl_batch(tickers: list[str]) -> pd.DataFrame:
     return combined[["ticker", "date", "open", "high", "low", "close", "volume"]]
 
 
-def download_all_ohcl(
+def download_all_ohlc(
     tickers: list[str],
     batch_size: int = 50,
     sleep_seconds: float = 5.0,
@@ -90,10 +87,10 @@ def download_all_ohcl(
 
     for i in range(0, len(tickers), batch_size):
         batch = tickers[i : i + batch_size]
-        logger.info("Fetching OHCL batch %d-%d of %d", i, i + len(batch), len(tickers))
+        logger.info("Fetching OHLC batch %d-%d of %d", i, i + len(batch), len(tickers))
 
         try:
-            df = fetch_ohcl_batch(batch)
+            df = fetch_ohlc_batch(batch)
         except Exception:
             logger.exception("Batch failed entirely: %s", batch)
             missing.extend(batch)
@@ -110,8 +107,8 @@ def download_all_ohcl(
         time.sleep(sleep_seconds)
 
     if missing:
-        logger.warning("Missing OHCL for %d/%d tickers", len(missing), len(tickers))
-        print("Missing OHCL for %d/%d tickers", len(missing), len(tickers))
+        logger.warning("Missing OHLC for %d/%d tickers", len(missing), len(tickers))
+        print("Missing OHLC for %d/%d tickers", len(missing), len(tickers))
 
     combined = (
         pd.concat(all_frames, ignore_index=True) if all_frames else pd.DataFrame()

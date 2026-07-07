@@ -13,9 +13,13 @@ class StockData(Base):
     date = Column(Date, nullable=False)
     ticker = Column(String, nullable=False, index=True)
     close = Column(Float, nullable=False)
+    high = Column(Float, nullable=False)
+    low = Column(Float, nullable=False)
     open = Column(Float, nullable=False)
+    volume = Column(Integer, nullable=True)
     ytd = Column(Integer, nullable=True)
     previous_correction = Column(Float, nullable=True)
+    weekly_change = Column(Float, nullable=True)
     last_correction = Column(Float, nullable=True)
     ma50 = Column(Float, nullable=True)
     ma50_above = Column(Boolean, nullable=True)
@@ -171,7 +175,7 @@ class Weekly20Best(Base):
     pct_change = Column(Float, nullable=False)
 
     def __repr__(self):
-        return f"<StockData(ticker='{self.ticker}', date='{self.date}', close={self.weekly_change})>"
+        return f"<StockData(ticker='{self.ticker}', date='{self.date}')>"
 
 
 class Weekly20Worst(Base):
@@ -183,7 +187,7 @@ class Weekly20Worst(Base):
     pct_change = Column(Float, nullable=False)
 
     def __repr__(self):
-        return f"<StockData(ticker='{self.ticker}', date='{self.date}', close={self.weekly_change})>"
+        return f"<StockData(ticker='{self.ticker}', date='{self.date}')>"
 
 
 class IndexesWeeklyChange(Base):
