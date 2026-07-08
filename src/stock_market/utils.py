@@ -48,7 +48,7 @@ def get_large_cap_tickers(session, min_market_cap: int = 2_000_000_000) -> list[
     return list_of_tickers
 
 
-def creating_list_of_tickers_nasdaq() -> list[str]:
+def creating_list_of_tickers_nasdaq(session) -> list[str]:
     nasdaq_list_of_tickers = [
         t.ticker
         for t in session.query(AllTickersMonthlyUpdate)
@@ -58,7 +58,7 @@ def creating_list_of_tickers_nasdaq() -> list[str]:
     return nasdaq_list_of_tickers
 
 
-def creating_list_of_tickers_nyse() -> list[str]:
+def creating_list_of_tickers_nyse(session) -> list[str]:
     nyse_list_of_tickers = [
         t.ticker
         for t in session.query(AllTickersMonthlyUpdate)
