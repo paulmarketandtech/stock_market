@@ -14,8 +14,6 @@ print("TG bot started")
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
-session = get_session()
-
 
 async def user_info_momentum(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info("User %s started the conversation.", update)
@@ -273,6 +271,7 @@ async def market_breadth(context: ContextTypes.DEFAULT_TYPE) -> None:
     context.application.stop_running()
 
 
+"""
 application = Application.builder().token(os.getenv("TG_TOKEN")).build()
 
 application.add_handler(CommandHandler("info", user_info_momentum))
@@ -297,6 +296,7 @@ application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 logging.info("Finished TG bot")
 session.close()
+"""
 
 
 def create_DF_for_ytd_weekly_correction(session, previous_day: str):
@@ -305,6 +305,7 @@ def create_DF_for_ytd_weekly_correction(session, previous_day: str):
         .filter(StockData.date == previous_day)
         .all()
     )
+    print(query_result_weekly[:5])
     query_result_ytd = (
         session.query(StockData.ticker, StockData.ytd)
         .filter(StockData.date == previous_day)

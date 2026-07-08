@@ -4,6 +4,7 @@ load_dotenv()
 from stock_market.config import fundamentals_file_path, ohlc_file_path
 from stock_market.db_hub.session import get_session, init_db
 from stock_market.integrations import yfinance_client
+from stock_market.integrations.tg_main import create_DF_for_ytd_weekly_correction
 from stock_market.integrations.tradingview_client import sma_calculations
 from stock_market.momentum.repositories.ohlc_repo import read_parquet_file, save_ohlc
 from stock_market.momentum.services.charts_market_breadth import chart_managing
@@ -54,6 +55,7 @@ def main():
         # count_daily_routine_returns(
         #    session, previous_day, YTD_DATE, LAST_CORRECTION_DATE
         # )
+        """
         list_of_tickers_nasdaq = creating_list_of_tickers_nasdaq()
         list_of_tickers_nyse = creating_list_of_tickers_nyse()
         sma_calculations(
@@ -64,6 +66,8 @@ def main():
             list_of_tickers_nyse,
         )
         chart_managing(session, previous_day)
+        """
+        create_DF_for_ytd_weekly_correction(session, previous_day)
     # DONT run fundamentals for now. have to write the whole logic of DB populating
     # run_fundamentals_extract(list_of_tickers[:50])
 
