@@ -18,5 +18,6 @@ db_storage/
 *.csv
 *.sh
 *.log
+*.txt
 market_breadth_screens/
 data_lake/
