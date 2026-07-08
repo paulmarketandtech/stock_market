@@ -45,6 +45,7 @@ def populate_db_from_files(run_date) -> None:
 def main():
     with get_session() as session:
         list_of_tickers = get_large_cap_tickers(session)
+        no_of_tickers = len(list_of_tickers)
         previous_day = get_previous_day()
         # yf download works - just clean the code
         # run_ohlc_extract(list_of_tickers[:100])
