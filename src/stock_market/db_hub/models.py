@@ -3,8 +3,6 @@ from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 
-# Base.metadata.create_all(engine)
-
 
 class StockData(Base):
     __tablename__ = "stock_data"
@@ -68,6 +66,61 @@ class AllTickersMonthlyUpdate(Base):
         return f"<StockData(ticker='{self.ticker}', date='{self.date}', MC={self.market_cap})>"
 
 
+class ListOfIndexes(Base):
+    __tablename__ = "list_of_indexes"
+
+    id = Column(Integer, primary_key=True)
+    ticker = Column(String, nullable=False, index=True)
+
+    def __repr__(self):
+        return f"<ListOfIndexes(ticker='{self.ticker}')>"
+
+
+class ListOfETFs(Base):
+    __tablename__ = "list_of_etfs"
+
+    id = Column(Integer, primary_key=True)
+    ticker = Column(String, nullable=False, index=True)
+
+    def __repr__(self):
+        return f"<ListOfETFs(ticker='{self.ticker}')>"
+
+
+class ListOfCommodities(Base):
+    __tablename__ = "list_of_commodities"
+
+    id = Column(Integer, primary_key=True)
+    ticker = Column(String, nullable=False, index=True)
+
+    def __repr__(self):
+        return f"<ListOfCommodities(ticker='{self.ticker}')>"
+
+
+class MarketBreadth(Base):
+    __tablename__ = "market_breadth"
+
+    id = Column(Integer, primary_key=True)
+    date = Column(Date, nullable=False)
+
+    ma50_number_of_stocks_above = Column(Integer, nullable=True)
+    ma50_number_of_stocks_below = Column(Integer, nullable=True)
+    ma50_pct_of_stocks_above = Column(Float, nullable=True)
+
+    ma100_number_of_stocks_above = Column(Integer, nullable=True)
+    ma100_number_of_stocks_below = Column(Integer, nullable=True)
+    ma100_pct_of_stocks_above = Column(Float, nullable=True)
+
+    ma200_number_of_stocks_above = Column(Integer, nullable=True)
+    ma200_number_of_stocks_below = Column(Integer, nullable=True)
+    ma200_pct_of_stocks_above = Column(Float, nullable=True)
+
+    def __repr__(self):
+        return f"<MarketBreadth(date='{self.date}')>"
+
+
+""" Below this probably everything to be deleted """
+
+
 class YTD20Best(Base):
     __tablename__ = "ytd_best"
 
@@ -84,32 +137,6 @@ class YTD20Worst(Base):
     __tablename__ = "ytd_worst"
 
     id = Column(Integer, primary_key=True)
-    date = Column(Date, nullable=False)
-    ticker = Column(String, nullable=False, index=True)
-    pct_change = Column(Float, nullable=True)
-
-    def __repr__(self):
-        return f"<StockData(ticker='{self.ticker}', date='{self.date}')>"
-
-
-class PreviousCorrectionBest(Base):
-    __tablename__ = "previous_correction_best"
-
-    id = Column(Integer, primary_key=True)
-    benchmark_date = Column(Date, nullable=False)
-    date = Column(Date, nullable=False)
-    ticker = Column(String, nullable=False, index=True)
-    pct_change = Column(Float, nullable=True)
-
-    def __repr__(self):
-        return f"<StockData(ticker='{self.ticker}', date='{self.date}')>"
-
-
-class PreviousCorrectionWorst(Base):
-    __tablename__ = "previous_correction_worst"
-
-    id = Column(Integer, primary_key=True)
-    benchmark_date = Column(Date, nullable=False)
     date = Column(Date, nullable=False)
     ticker = Column(String, nullable=False, index=True)
     pct_change = Column(Float, nullable=True)
@@ -142,28 +169,6 @@ class LastCorrectionWorst(Base):
 
     def __repr__(self):
         return f"<StockData(ticker='{self.ticker}', date='{self.date}')>"
-
-
-class MarketBreadth(Base):
-    __tablename__ = "market_breadth"
-
-    id = Column(Integer, primary_key=True)
-    date = Column(Date, nullable=False)
-
-    ma50_number_of_stocks_above = Column(Integer, nullable=True)
-    ma50_number_of_stocks_below = Column(Integer, nullable=True)
-    ma50_pct_of_stocks_above = Column(Float, nullable=True)
-
-    ma100_number_of_stocks_above = Column(Integer, nullable=True)
-    ma100_number_of_stocks_below = Column(Integer, nullable=True)
-    ma100_pct_of_stocks_above = Column(Float, nullable=True)
-
-    ma200_number_of_stocks_above = Column(Integer, nullable=True)
-    ma200_number_of_stocks_below = Column(Integer, nullable=True)
-    ma200_pct_of_stocks_above = Column(Float, nullable=True)
-
-    def __repr__(self):
-        return f"<StockData(date='{self.date}')>"
 
 
 class Weekly20Best(Base):

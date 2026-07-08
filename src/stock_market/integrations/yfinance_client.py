@@ -5,7 +5,6 @@ import yfinance as yf
 from stock_market.utils import get_previous_day
 
 working_date = get_previous_day()
-print(working_date)
 
 import json
 import os
@@ -16,14 +15,14 @@ import pandas as pd
 import yfinance as yf
 from tqdm import tqdm
 
-BATCH_SIZE = 100  # Smaller for .info (more heavy request)
+BATCH_SIZE = 100
 SLEEP_BETWEEN = 10
 
 
 import logging
 
 logger = logging.getLogger(__name__)
-print(f"logger from YF: {logger}")
+# print(f"logger from YF: {logger}")
 
 # ====================== 1. OHLCV Download ======================
 

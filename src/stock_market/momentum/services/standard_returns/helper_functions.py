@@ -11,8 +11,6 @@ from datetime import date, datetime, timedelta
 
 from stock_market.db_hub.models import StockData
 
-# TODO: change it to helper_functions.py
-
 
 def returns_counter_in_pct(previous_date_price: float, after_date_price: float):
 

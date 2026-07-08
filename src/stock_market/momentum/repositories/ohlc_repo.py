@@ -11,7 +11,6 @@ def read_parquet_file(filename: str):
 
 def save_ohlc(filename: str):
     df = read_parquet_file(filename)
-    # print(df.head(5))
 
     with get_session() as session:
         """

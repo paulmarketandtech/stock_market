@@ -40,10 +40,12 @@ def count_daily_routine_returns(
 
     yesterday_data = get_yesterdays_data(session, previous_day)
     previous_friday = get_previous_friday(session)
-    print(f"prev: {previous_friday}")
     current_week_returns = count_returns_from_fridays_to_date(
         session, yesterday_data, previous_friday
     )
+    print("-" * 40)
+    print(current_week_returns)
+    """
     ytd_returns = count_returns_from_given_date_to_date(
         session, yesterday_data, ytd_date
     )
@@ -58,3 +60,4 @@ def count_daily_routine_returns(
         four_weeks_returns = count_returns_from_fridays_to_date(
             session, yesterday_data, four_weeks_ago_friday
         )
+    """
