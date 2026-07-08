@@ -3,15 +3,14 @@ import os
 from datetime import date, timedelta
 from typing import Dict
 
-from dotenv import load_dotenv
-from sqlalchemy.orm import Session
+from stock_market.db_hub.models import (
+    AllTickersMonthlyUpdate,
+    ListOfCommodities,
+    ListOfETFs,
+    ListOfIndexes,
+)
 
-from stock_market.db_hub.models import AllTickersMonthlyUpdate
-from stock_market.db_hub.session import DATABASE_URL, get_session, init_db
-
-load_dotenv()
 YTD_DATE = date(2026, 1, 2)
-PREVIOUS_CORRECTION_DATE = date(2024, 11, 5)
 LAST_CORRECTION_DATE = date(2025, 4, 7)
 
 logging.basicConfig(
@@ -31,48 +30,25 @@ def get_previous_day() -> date:
     return date.today() - timedelta(days=1)
 
 
-with get_session() as db:
-    list_of_tickers = [
-        t.ticker
-        for t in db.query(AllTickersMonthlyUpdate)
-        .filter(AllTickersMonthlyUpdate.market_cap > 2_000_000_000)
-        .all()
-    ]
-    print(list_of_tickers[:5])
-
-
-def creating_list_of_tickers_2B(
-    list_of_indexes: list[str],
-    list_of_commodities: list[str],
-    list_of_etfs: list[str],
-) -> list[str]:
+def get_large_cap_tickers(session, min_market_cap: int = 2_000_000_000) -> list[str]:
+    list_of_commodities = [t.ticker for t in session.query(ListOfCommodities).all()]
+    list_of_indexes = [t.ticker for t in session.query(ListOfIndexes).all()]
+    list_of_etfs = [t.ticker for t in session.query(ListOfETFs).all()]
     list_of_tickers = [
         t.ticker
         for t in session.query(AllTickersMonthlyUpdate)
-        .filter(AllTickersMonthlyUpdate.market_cap > 2_000_000_000)
+        .filter(AllTickersMonthlyUpdate.market_cap > min_market_cap)
         .all()
     ]
+
     list_of_tickers.extend(list_of_indexes)
     list_of_tickers.extend(list_of_commodities)
     list_of_tickers.extend(list_of_etfs)
-    logging.info(f"Created list of tickers from DB with length: {len(list_of_tickers)}")
-    print(f"Created list of tickers from DB with length: {len(list_of_tickers)}")
+
     return list_of_tickers
 
 
-def creating_list_of_tickers_5B() -> list[str]:
-    list_of_tickers = [
-        t.ticker
-        for t in session.query(AllTickersMonthlyUpdate)
-        .filter(AllTickersMonthlyUpdate.market_cap > 5_000_000_000)
-        .all()
-    ]
-    logging.info(f"Created list of tickers from DB with length: {len(list_of_tickers)}")
-    print(f"Created list of tickers from DB with length: {len(list_of_tickers)}")
-    return list_of_tickers
-
-
-def creating_list_of_tickers_nasdaq() -> list[str]:
+def creating_list_of_tickers_nasdaq(session) -> list[str]:
     nasdaq_list_of_tickers = [
         t.ticker
         for t in session.query(AllTickersMonthlyUpdate)
@@ -82,7 +58,7 @@ def creating_list_of_tickers_nasdaq() -> list[str]:
     return nasdaq_list_of_tickers
 
 
-def creating_list_of_tickers_nyse() -> list[str]:
+def creating_list_of_tickers_nyse(session) -> list[str]:
     nyse_list_of_tickers = [
         t.ticker
         for t in session.query(AllTickersMonthlyUpdate)
@@ -92,109 +68,20 @@ def creating_list_of_tickers_nyse() -> list[str]:
     return nyse_list_of_tickers
 
 
-# create tables with those tickers?
-list_of_indexes = [
-    "QQQ",
-    "SPY",
-    "DIA",
-    "IWM",
-    "DAX",
-    "EWQ",
-    "EWU",
-    "EWC",
-    "EWZ",
-    "ARGT",
-    "EWW",
-    "EWA",
-    "MCHI",
-    "KWEB",
-    "EWJ",
-    "EPI",
-    "EWY",
-    "EWT",
-    "EWH",
-    "EWS",
-]
-list_of_commodities = ["GLD", "SLV", "COPX", "USO"]
-
-list_of_etfs = [
-    "XLC",
-    "VOX",
-    "IYZ",
-    "FCOM",
-    "XLY",
-    "VCR",
-    "IYC",
-    "FDIS",
-    "XLP",
-    "VDC",
-    "IYK",
-    "FSTA",
-    "XLE",
-    "VDE",
-    "IYE",
-    "FENY",
-    "XLF",
-    "VFH",
-    "IYF",
-    "FNCL",
-    "XLV",
-    "VHT",
-    "IYH",
-    "FHLC",
-    "XLI",
-    "VIS",
-    "IYJ",
-    "FIDU",
-    "XLK",
-    "VGT",
-    "IYW",
-    "FTEC",
-    "XLB",
-    "VAW",
-    "IYM",
-    "FMAT",
-    "XLRE",
-    "VNQ",
-    "IYR",
-    "FREL",
-    "XLU",
-    "VPU",
-    "IDU",
-    "FUTY",
-    "IBUY",
-    "FINX",
-    "IBB",
-    "IDNA",
-    "IHI",
-    "ITA",
-    "SOXX",
-    "IGV",
-    "CIBR",
-    "PICK",
-    "ICF",
-    "ICLN",
-    "PAVE",
-    "IFRA",
-    "SMH",
-    "XBI",
-    "XHB",
-    "ITB",
-    "KRE",
-    "XOP",
-    "GDX",
-    "XAR",
-    "HACK",
-    "TAN",
-    "ROBO",
-    "BOTZ",
-]
-
 """
-list_of_tickers_2B = creating_list_of_tickers_2B(
-    list_of_indexes, list_of_commodities, list_of_etfs
-)
-list_of_tickers_5B = creating_list_of_tickers_5B()
+helper functions
+
+def populate_table(session, tickers):
+    print(f"len of tickers list: {tickers}")
+
+    for ticker in tickers:
+        stock_price = ListOfETFs(ticker=ticker)
+        session.add(stock_price)
+
+    session.commit()
+    print("DB Populated")
+    stock_data = session.query(ListOfETFs.ticker).all()
+
 list_of_tickers_nasdaq = creating_list_of_tickers_nasdaq()
 list_of_tickers_nyse = creating_list_of_tickers_nyse()
 """
