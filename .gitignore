@@ -11,3 +11,6 @@ wheels/
 .env
 db_storage/
 *.log
+*.txt
+market_breadth_screens/
+data_lake/
