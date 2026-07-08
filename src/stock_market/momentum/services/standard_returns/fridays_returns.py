@@ -1,8 +1,6 @@
 from datetime import date, datetime, timedelta
 from typing import List, Tuple
 
-import pandas as pd
-
 from stock_market.db_hub.models import StockData
 from stock_market.momentum.services.standard_returns.helper_functions import (
     returns_counter_in_pct,
@@ -33,6 +31,7 @@ def get_previous_friday(session):
     return last_friday
 
 
+# TODO: probably won't be used. delete from here but save the algo, it may be needed
 def get_four_weeks_ago_friday(session):
     """Looks for four weeks ago friday. if it was off then it takes thursday"""
 
@@ -51,7 +50,10 @@ def get_four_weeks_ago_friday(session):
 
 # TODO: add DB population, not just printing
 def count_returns_from_fridays_to_date(
-    session, yesterday_data: List[Tuple[str, float]], from_friday: str
+    session,
+    previous_day: str,
+    yesterday_data: List[Tuple[str, float]],
+    friday_date: str,
 ) -> None:
     """Counts returns from
     previous friday close price and four weeks before friday close price
@@ -60,18 +62,24 @@ def count_returns_from_fridays_to_date(
 
     data_for_df = []
     for record in yesterday_data[:5]:
+        symbol = record[0]
+        yesterday_closing_price = record[1]
+
         try:
-            from_friday_closing_price = (
+            friday_date_closing_price = (
                 session.query(StockData.close)
-                .filter(StockData.ticker == record[0], StockData.date == from_friday)
+                .filter(StockData.ticker == symbol, StockData.date == friday_date)
                 .first()
             )[0]
-            result = returns_counter_in_pct(from_friday_closing_price, record[1])
-            print(f"{from_friday}, ticker: {record[0]}, return: {result}")
 
-            data_for_df.append({"ticker": record[0], "ytd_return": result})
+            pct_return_result = returns_counter_in_pct(
+                friday_date_closing_price, yesterday_closing_price
+            )
+            print(f"{friday_date}, ticker: {symbol}, return: {result}")
+
+            session.query(StockData).filter_by(ticker=symbol, date=previous_day).update(
+                {"weekly_change": pct_return_result}
+            )
+            session.commit()  # i think it can go outside the loop
         except:
-            print(f"{from_friday}, did not work out")
-
-    df = pd.DataFrame(data_for_df)
-    return df
+            print(f"{friday_date}, did not work out")
