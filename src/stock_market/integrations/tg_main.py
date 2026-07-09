@@ -1,6 +1,7 @@
 import os
 from datetime import date, datetime, timedelta
 
+import pandas as pd
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
@@ -299,23 +300,53 @@ session.close()
 """
 
 
-def create_DF_for_ytd_weekly_correction(session, previous_day: str):
+# TODO: format to 2 decimals
+def tg_create_DF_for_ytd_weekly_correction(session, previous_day: str):
+    previous_day = "2026-07-07"
     query_result_weekly = (
         session.query(StockData.ticker, StockData.weekly_change)
         .filter(StockData.date == previous_day)
         .all()
     )
-    print(query_result_weekly[:5])
+    # print(query_result_weekly[:5])
+    df_weekly = pd.DataFrame(query_result_weekly, columns=["ticker", "weekly_returns"])
+    df_weekly.dropna(inplace=True)
+    df_weekly.sort_values(by="weekly_returns", inplace=True, ascending=False)
+    print(df_weekly.head())
+    print("-" * 40)
+    df_weekly_tail = df_weekly.tail(5)
+    df_weekly_tail.sort_values(by="weekly_returns", inplace=True)
+    print(df_weekly_tail)
+
     query_result_ytd = (
         session.query(StockData.ticker, StockData.ytd)
         .filter(StockData.date == previous_day)
         .all()
     )
+    df_ytd = pd.DataFrame(query_result_ytd, columns=["ticker", "ytd_returns"])
+    df_ytd.dropna(inplace=True)
+    df_ytd.sort_values(by="ytd_returns", inplace=True, ascending=False)
+    print(df_ytd.head())
+    print("-" * 40)
+    df_ytd_tail = df_ytd.tail(5)
+    df_ytd_tail.sort_values(by="ytd_returns", inplace=True)
+    print(df_ytd_tail)
+
     query_result_correction = (
         session.query(StockData.ticker, StockData.last_correction)
         .filter(StockData.date == previous_day)
         .all()
     )
+    df_correction = pd.DataFrame(
+        query_result_correction, columns=["ticker", "correction_returns"]
+    )
+    df_correction.dropna(inplace=True)
+    df_correction.sort_values(by="correction_returns", inplace=True, ascending=False)
+    print(df_correction.head(5))
+    print("-" * 40)
+    df_correction_tail = df_correction.tail(5)
+    df_correction_tail.sort_values(by="correction_returns", inplace=True)
+    print(df_correction_tail)
 
 
 def tg_sequence():

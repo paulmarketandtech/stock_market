@@ -1,21 +1,13 @@
-from datetime import date, timedelta
-
-import yfinance as yf
-
-from stock_market.utils import get_previous_day
-
-working_date = get_previous_day()
-
 import json
 import os
 import time
-from datetime import datetime, timedelta
+from datetime import date
 
 import pandas as pd
 import yfinance as yf
 from tqdm import tqdm
 
-BATCH_SIZE = 100
+BATCH_SIZE = 250
 SLEEP_BETWEEN = 10
 
 
@@ -36,13 +28,13 @@ COLUMN_RENAME = {
 }
 
 
-def fetch_ohlc_batch(tickers: list[str]) -> pd.DataFrame:
+def fetch_ohlc_batch(tickers: list[str], previous_day: str) -> pd.DataFrame:
     """Download OHLC for a batch of tickers, return long format:
     [ticker, date, open, high, low, close, volume]
     """
     raw = yf.download(
         tickers=tickers,
-        start=date.today() - timedelta(days=1),
+        start=previous_day,
         end=date.today(),
         group_by="ticker",
         auto_adjust=False,
@@ -77,19 +69,25 @@ def fetch_ohlc_batch(tickers: list[str]) -> pd.DataFrame:
 
 def download_all_ohlc(
     tickers: list[str],
-    batch_size: int = 50,
-    sleep_seconds: float = 5.0,
+    previous_day: str,
+    batch_size: int = BATCH_SIZE,
+    sleep_seconds: float = SLEEP_BETWEEN,
 ) -> tuple[pd.DataFrame, list[str]]:
     """Returns (combined_dataframe, list_of_tickers_with_no_data)."""
     all_frames = []
     missing: list[str] = []
-
+    total_processed = 0
+    # TODO: change that Processing and put it into a logging
     for i in range(0, len(tickers), batch_size):
+        if (i + 1) % 150 == 0:
+            total_processed += 1
+            print(f"Processing {i + 1}/{len(tickers)}")
+
         batch = tickers[i : i + batch_size]
         logger.info("Fetching OHLC batch %d-%d of %d", i, i + len(batch), len(tickers))
 
         try:
-            df = fetch_ohlc_batch(batch)
+            df = fetch_ohlc_batch(batch, previous_day)
         except Exception:
             logger.exception("Batch failed entirely: %s", batch)
             missing.extend(batch)
@@ -112,6 +110,7 @@ def download_all_ohlc(
     combined = (
         pd.concat(all_frames, ignore_index=True) if all_frames else pd.DataFrame()
     )
+    print(total_processed)
     return combined, missing
 
 

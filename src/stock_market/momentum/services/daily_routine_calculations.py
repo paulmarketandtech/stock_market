@@ -55,3 +55,26 @@ def count_daily_routine_returns(
             session, previous_day, yesterday_data, four_weeks_ago_friday
         )
     """
+
+
+"""
+implement this logic above
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("pipeline", choices=["daily", "extra-metrics"])
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.INFO)
+    try:
+        if args.pipeline == "daily":
+            run_daily_momentum()
+        elif args.pipeline == "extra-metrics":
+            run_extra_metrics()
+    except Exception:
+        logger.exception("%s pipeline failed", args.pipeline)
+        telegram_momentum_bot.send_error_alert(f"{args.pipeline} run failed, check logs")
+        raise
+
+if __name__ == "__main__":
+    main()
+"""
