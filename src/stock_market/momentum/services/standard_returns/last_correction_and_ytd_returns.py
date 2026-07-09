@@ -6,7 +6,6 @@ from stock_market.momentum.services.standard_returns.helper_functions import (
 )
 
 
-# TODO: add DB population, not just printing
 def count_returns_from_given_date_to_date(
     session,
     previous_day: str,
@@ -18,7 +17,7 @@ def count_returns_from_given_date_to_date(
     Example: to count YTD returns it uses opening price from the very first session day in a year
     """
 
-    for record in yesterday_data[:5]:
+    for record in yesterday_data:
         symbol = record[0]
         yesterday_closing_price = record[1]
 
@@ -37,6 +36,6 @@ def count_returns_from_given_date_to_date(
                 {ytd_or_correction: pct_return_result}
             )
             session.commit()  # i think it can go outside the loop
-            print(f"{from_date}, ticker: {symbol}, return: {result}")
+            # print(f"{from_date}, ticker: {symbol}, return: {pct_return_result}")
         except:
-            print(f"{from_date}, did not work out")
+            print(f"{from_date} {symbol}, did not work out")

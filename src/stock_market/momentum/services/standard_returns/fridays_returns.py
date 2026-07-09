@@ -48,7 +48,6 @@ def get_four_weeks_ago_friday(session):
     return four_weeks_ago_friday
 
 
-# TODO: add DB population, not just printing
 def count_returns_from_fridays_to_date(
     session,
     previous_day: str,

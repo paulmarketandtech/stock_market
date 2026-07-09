@@ -36,13 +36,13 @@ def count_daily_routine_returns(
     # current_week_returns = count_returns_from_fridays_to_date(
     #    session, previous_day, yesterday_data, previous_friday
     # )
-    ytd_returns = count_returns_from_given_date_to_date(
-        session, previous_day, yesterday_data, ytd_date, "ytd"
-    )
-    """
+    # ytd_returns = count_returns_from_given_date_to_date(
+    #    session, previous_day, yesterday_data, ytd_date, "ytd"
+    # )
     correction_returns = count_returns_from_given_date_to_date(
         session, previous_day, yesterday_data, correction_date, "last_correction"
     )
+    """
     from datetime import datetime
 
     #TODO: probably wont be used - to be deleted
@@ -56,7 +56,7 @@ def count_daily_routine_returns(
 
 
 """
-implement this logic above
+implement this logic above for ytd/last_correction
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("pipeline", choices=["daily", "extra-metrics"])
