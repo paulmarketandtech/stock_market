@@ -25,6 +25,7 @@ from stock_market.utils import (
     creating_list_of_tickers_nyse,
     get_large_cap_tickers,
     get_previous_day,
+    logging,
 )
 
 
@@ -52,18 +53,25 @@ def populate_db_from_files(run_date) -> None:
 def main():
     with get_session() as session:
         list_of_tickers = get_large_cap_tickers(session)
-        no_of_tickers = len(list_of_tickers)
-        print(no_of_tickers)
         previous_day = get_previous_day()
 
-        # yf download works - just clean the code
-        # run_ohlc_extract(list_of_tickers, previous_day)
-        # db populations works - just clean the code
-        # populate_db_from_files(previous_day)
-        # count_daily_routine_returns(
-        #    session, previous_day, YTD_DATE, LAST_CORRECTION_DATE
-        # )
-        """
+        logging.info(
+            f"Starting working on {previous_day}. Number of ticker: {len(list_of_tickers)}"
+        )
+        logging.info("Starting YF download.")
+        run_ohlc_extract(list_of_tickers, previous_day)
+
+        logging.info("Finished YF and populating the DB")
+        populate_db_from_files(previous_day)
+
+        logging.info(
+            "DB populated, starting daily routine: weekly, ytd, last correction returns"
+        )
+        count_daily_routine_returns(
+            session, previous_day, YTD_DATE, LAST_CORRECTION_DATE
+        )
+
+        logging.info("Daily routine done. Starting SMAs calculations")
         # SMAs have to be moved to something like daily routine - it cannot be 3 calls in main()
         list_of_tickers_nasdaq = creating_list_of_tickers_nasdaq(session)
         list_of_tickers_nyse = creating_list_of_tickers_nyse(session)
@@ -74,10 +82,13 @@ def main():
             list_of_tickers_nasdaq,
             list_of_tickers_nyse,
         )
-        """
-        # counting_above_below_SMAs(session, previous_day, list_of_tickers)
-        # chart_managing(session, previous_day)
+        counting_above_below_SMAs(session, previous_day, list_of_tickers)
+        chart_managing(session, previous_day)
+
+        logging.info("SMAs related finished. Sending TG messages")
         tg_sequence(session, previous_day)
+
+        logging.info("Daily proccess done.")
     # DONT run fundamentals for now. have to write the whole logic of DB populating
     # run_fundamentals_extract(list_of_tickers[:50])
 

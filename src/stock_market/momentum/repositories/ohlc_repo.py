@@ -37,12 +37,6 @@ def save_ohlc(filename: str):
 
         session.commit()
         print("DB Populated")
-        # TODO: delete below this
-        stock_data = (
-            session.query(StockData.ticker).filter(StockData.date == "2026-07-08").all()
-        )
-        print(len(stock_data))
-        print(f"first100 from 20260708: {stock_data[:100]}")
 
     except Exception as e:
         print(f"Database population failed: {e}")

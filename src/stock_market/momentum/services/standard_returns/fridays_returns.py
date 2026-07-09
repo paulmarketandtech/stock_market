@@ -5,6 +5,7 @@ from stock_market.db_hub.models import StockData
 from stock_market.momentum.services.standard_returns.helper_functions import (
     returns_counter_in_pct,
 )
+from stock_market.utils import logging
 
 
 def get_previous_friday(session):
@@ -80,13 +81,6 @@ def count_returns_from_fridays_to_date(
                 {"weekly_change": pct_return_result}
             )
             session.commit()  # i think it can go outside the loop
-            """
-            check_query = (
-                session.query(StockData.weekly_change)
-                .filter(StockData.ticker == symbol, StockData.date == "2026-07-07")
-                .first()
-            )
-            print(f"{symbol}: {check_query}")
-            """
         except:
             print(f"{friday_date}, {symbol}, did not work out")
+            logging.error(f"{friday_date}, {symbol}, did not work out")

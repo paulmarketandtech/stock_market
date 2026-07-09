@@ -4,6 +4,7 @@ from stock_market.db_hub.models import StockData
 from stock_market.momentum.services.standard_returns.helper_functions import (
     returns_counter_in_pct,
 )
+from stock_market.utils import logging
 
 
 def count_returns_from_given_date_to_date(
@@ -39,3 +40,4 @@ def count_returns_from_given_date_to_date(
             # print(f"{from_date}, ticker: {symbol}, return: {pct_return_result}")
         except:
             print(f"{from_date} {symbol}, did not work out")
+            logging.error(f"{from_date}, {symbol}, did not work out")

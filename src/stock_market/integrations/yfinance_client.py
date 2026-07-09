@@ -76,12 +76,8 @@ def download_all_ohlc(
     """Returns (combined_dataframe, list_of_tickers_with_no_data)."""
     all_frames = []
     missing: list[str] = []
-    total_processed = 0
-    # TODO: change that Processing and put it into a logging
+
     for i in range(0, len(tickers), batch_size):
-        if (i + 1) % 150 == 0:
-            total_processed += 1
-            print(f"Processing {i + 1}/{len(tickers)}")
 
         batch = tickers[i : i + batch_size]
         logger.info("Fetching OHLC batch %d-%d of %d", i, i + len(batch), len(tickers))

@@ -24,6 +24,7 @@ from stock_market.momentum.services.standard_returns.helper_functions import (
 from stock_market.momentum.services.standard_returns.last_correction_and_ytd_returns import (
     count_returns_from_given_date_to_date,
 )
+from stock_market.utils import logging
 
 
 def count_daily_routine_returns(
@@ -32,12 +33,18 @@ def count_daily_routine_returns(
 
     yesterday_data = get_yesterdays_data(session, previous_day)
     previous_friday = get_previous_friday(session)
-    # current_week_returns = count_returns_from_fridays_to_date(
-    #    session, previous_day, yesterday_data, previous_friday
-    # )
-    # ytd_returns = count_returns_from_given_date_to_date(
-    #    session, previous_day, yesterday_data, ytd_date, "ytd"
-    # )
+
+    logging.info(f"Starting weekly returns. Previous Friday: {previous_friday}")
+    current_week_returns = count_returns_from_fridays_to_date(
+        session, previous_day, yesterday_data, previous_friday
+    )
+
+    logging.info("Starting ytd returns.")
+    ytd_returns = count_returns_from_given_date_to_date(
+        session, previous_day, yesterday_data, ytd_date, "ytd"
+    )
+
+    logging.info("Starting las correction returns.")
     correction_returns = count_returns_from_given_date_to_date(
         session, previous_day, yesterday_data, correction_date, "last_correction"
     )

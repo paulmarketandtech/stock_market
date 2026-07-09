@@ -408,6 +408,7 @@ def tg_sequence(session, previous_day: str):
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
+    logging.info("Finished TG bot")
     """
     application.add_handler(CommandHandler("info", user_info_momentum))
     today = datetime.today().strftime("%A")
@@ -418,5 +419,4 @@ def tg_sequence(session, previous_day: str):
         job_queue.run_once(weekly_etfs, 6)
 
 
-    logging.info("Finished TG bot")
     """
