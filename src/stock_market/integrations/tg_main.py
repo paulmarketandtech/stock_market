@@ -21,6 +21,7 @@ async def user_info_momentum(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await update.message.reply_text("info")
 
 
+# TODO: change to list_of_tickers
 async def tuesday_number_of_tickers(context: ContextTypes.DEFAULT_TYPE):
     try:
         query_result_5B = (
@@ -39,155 +40,150 @@ async def tuesday_number_of_tickers(context: ContextTypes.DEFAULT_TYPE):
         logger.error("tuesday_number_of_tickers Error: %s", e)
 
 
-async def ytd_top20(context: ContextTypes.DEFAULT_TYPE):
+async def ytd_top(context: ContextTypes.DEFAULT_TYPE):
+    job_data = context.job.data
+    df = job_data["df"]
+    chat_id = job_data["chat_id"]
+
     try:
-        query_result = (
-            session.query(
-                YTD20Best.date,
-                YTD20Best.ticker,
-                YTD20Best.pct_change,
-            )
-            .filter(YTD20Best.date == previous_day)
-            .all()
-        )
-        ytd_best_msg = f"Best performing stocks YTD as of {previous_day}\n\n"
-        for q in query_result:
-            ytd_best_msg += f"{q.ticker}: {round(q.pct_change,2)}%\n"
+
+        ytd_best_msg = f"Best performing stocks YTD\n\n"
+
+        for _, row in df.iterrows():
+            ticker = row["ticker"]
+            pct_change = row["ytd_returns"]
+            ytd_best_msg += f"{ticker}: {round(pct_change, 2)}%\n"
+
         await context.bot.send_message(
-            chat_id=os.getenv("CJT_GROUP_ID"),
+            chat_id=chat_id,
             message_thread_id=os.getenv("TICKER_BOT_ROOM"),
             text=ytd_best_msg,
         )
-        logging.info("ytd_top20 successly sent")
+        logging.info("ytd_top successly sent")
     except Exception as e:
-        logger.error("ytd_top20 Error: %s", e)
+        logger.error("ytd_top Error: %s", e)
 
 
-async def ytd_bottom20(context: ContextTypes.DEFAULT_TYPE):
+async def ytd_bottom(context: ContextTypes.DEFAULT_TYPE):
+    job_data = context.job.data
+    df = job_data["df"]
+    chat_id = job_data["chat_id"]
+
     try:
-        query_result = (
-            session.query(
-                YTD20Worst.date,
-                YTD20Worst.ticker,
-                YTD20Worst.pct_change,
-            )
-            .filter(YTD20Worst.date == previous_day)
-            .all()
-        )
-        ytd_worst_msg = f"Worst performing stocks YTD as of {previous_day}\n\n"
-        for q in query_result:
-            ytd_worst_msg += f"{q.ticker}: {round(q.pct_change,2)}%\n"
+        ytd_worst_msg = f"Worst performing stocks YTD\n\n"
+
+        for _, row in df.iterrows():
+            ticker = row["ticker"]
+            pct_change = row["ytd_returns"]
+            ytd_worst_msg += f"{ticker}: {round(pct_change, 2)}%\n"
+
         await context.bot.send_message(
-            chat_id=os.getenv("CJT_GROUP_ID"),
+            chat_id=chat_id,
             message_thread_id=os.getenv("TICKER_BOT_ROOM"),
             text=ytd_worst_msg,
         )
-        logging.info("ytd_bottom20 successly sent")
+        logging.info("ytd_bottom successly sent")
     except Exception as e:
-        logger.error("ytd_bottom20 Error: %s", e)
+        logger.error("ytd_bottom Error: %s", e)
 
 
-async def last_correction_top20(context: ContextTypes.DEFAULT_TYPE):
+async def last_correction_top(context: ContextTypes.DEFAULT_TYPE):
+    job_data = context.job.data
+    df = job_data["df"]
+    chat_id = job_data["chat_id"]
+
     try:
-        query_result = (
-            session.query(
-                LastCorrectionBest.date,
-                LastCorrectionBest.ticker,
-                LastCorrectionBest.pct_change,
-            )
-            .filter(LastCorrectionBest.date == previous_day)
-            .all()
-        )
-        last_correction_best_msg = (
-            f"Best performing stocks since April 7th as of {previous_day}\n\n"
-        )
-        for q in query_result:
-            last_correction_best_msg += f"{q.ticker}: {round(q.pct_change,2)}%\n"
+        last_correction_best_msg = f"Best performing stocks since April 7th\n\n"
+
+        for _, row in df.iterrows():
+            ticker = row["ticker"]
+            pct_change = row["correction_returns"]
+            last_correction_best_msg += f"{ticker}: {round(pct_change, 2)}%\n"
+
         await context.bot.send_message(
-            chat_id=os.getenv("CJT_GROUP_ID"),
+            chat_id=chat_id,
             message_thread_id=os.getenv("TICKER_BOT_ROOM"),
             text=last_correction_best_msg,
         )
-        logging.info("last_correction_top20 successly sent")
+        logging.info("last_correction_top successly sent")
     except Exception as e:
-        logger.error("last_correction_top20 Error: %s", e)
+        logger.error("last_correction_top Error: %s", e)
 
 
-async def last_correction_bottom20(context: ContextTypes.DEFAULT_TYPE):
+async def last_correction_bottom(context: ContextTypes.DEFAULT_TYPE):
+    job_data = context.job.data
+    df = job_data["df"]
+    chat_id = job_data["chat_id"]
+
     try:
-        query_result = (
-            session.query(
-                LastCorrectionWorst.date,
-                LastCorrectionWorst.ticker,
-                LastCorrectionWorst.pct_change,
-            )
-            .filter(LastCorrectionWorst.date == previous_day)
-            .all()
-        )
-        last_correction_worst_msg = (
-            f"Worst performing stocks since April 7th as of {previous_day}\n\n"
-        )
-        for q in query_result:
-            last_correction_worst_msg += f"{q.ticker}: {round(q.pct_change,2)}%\n"
+        last_correction_worst_msg = f"Worst performing stocks since April 7th\n\n"
+
+        for _, row in df.iterrows():
+            ticker = row["ticker"]
+            pct_change = row["correction_returns"]
+            last_correction_worst_msg += f"{ticker}: {round(pct_change, 2)}%\n"
+
         await context.bot.send_message(
-            chat_id=os.getenv("CJT_GROUP_ID"),
+            chat_id=chat_id,
             message_thread_id=os.getenv("TICKER_BOT_ROOM"),
             text=last_correction_worst_msg,
         )
-        logging.info("last_correction_bottom20 successly sent")
+        logging.info("last_correction_bottom successly sent")
     except Exception as e:
-        logger.error("last_correction_bottom20 Error: %s", e)
+        logger.error("last_correction_bottom Error: %s", e)
 
 
-async def weekly_top20(context: ContextTypes.DEFAULT_TYPE):
+async def weekly_top(context: ContextTypes.DEFAULT_TYPE):
+    job_data = context.job.data
+    df = job_data["df"]
+    chat_id = job_data["chat_id"]
+
     try:
-        query_result = (
-            session.query(
-                Weekly20Best.date,
-                Weekly20Best.ticker,
-                Weekly20Best.pct_change,
-            )
-            .filter(Weekly20Best.date == previous_day)
-            .all()
-        )
         weekly_best_msg = "This week best performing stocks:\n\n"
-        for q in query_result:
-            weekly_best_msg += f"{q.ticker}: {round(q.pct_change,2)}%\n"
+
+        for _, row in df.iterrows():
+            ticker = row["ticker"]
+            pct_change = row["weekly_returns"]
+            weekly_best_msg += f"{ticker}: {round(pct_change, 2)}%\n"
+
         await context.bot.send_message(
-            chat_id=os.getenv("CJT_GROUP_ID"),
+            chat_id=chat_id,
             message_thread_id=os.getenv("TICKER_BOT_ROOM"),
             text=weekly_best_msg,
         )
-        logging.info("weekly_top20 successly sent")
+        logging.info("weekly_top successly sent")
     except Exception as e:
-        logger.error("weekly_top20 Error: %s", e)
+        logger.error("weekly_top Error: %s", e)
 
 
-async def weekly_bottom20(context: ContextTypes.DEFAULT_TYPE):
+async def weekly_bottom(context: ContextTypes.DEFAULT_TYPE):
+    job_data = context.job.data
+    df = job_data["df"]
+    chat_id = job_data["chat_id"]
+
     try:
-        query_result = (
-            session.query(
-                Weekly20Worst.date,
-                Weekly20Worst.ticker,
-                Weekly20Worst.pct_change,
-            )
-            .filter(Weekly20Worst.date == previous_day)
-            .all()
-        )
         weekly_worst_msg = "This week worst performing stocks\n\n"
-        for q in query_result:
-            weekly_worst_msg += f"{q.ticker}: {round(q.pct_change,2)}%\n"
+
+        for _, row in df.iterrows():
+            ticker = row["ticker"]
+            pct_change = row["weekly_returns"]
+            weekly_worst_msg += f"{ticker}: {round(pct_change, 2)}%\n"
+
         await context.bot.send_message(
-            chat_id=os.getenv("CJT_GROUP_ID"),
+            chat_id=chat_id,
             message_thread_id=os.getenv("TICKER_BOT_ROOM"),
             text=weekly_worst_msg,
         )
-        logging.info("weekly_bottom20 successly sent")
+        logging.info("weekly_bottom successly sent")
     except Exception as e:
-        logger.error("weekly_bottom20 Error: %s", e)
+        logger.error("weekly_bottom Error: %s", e)
 
 
 async def weekly_indexes(context: ContextTypes.DEFAULT_TYPE):
+    job_data = context.job.data
+    df = job_data["df"]
+    chat_id = job_data["chat_id"]
+
     try:
         # ------INDEXES----------
         query_result_indexes = (
@@ -272,52 +268,22 @@ async def market_breadth(context: ContextTypes.DEFAULT_TYPE) -> None:
     context.application.stop_running()
 
 
-"""
-application = Application.builder().token(os.getenv("TG_TOKEN")).build()
-
-application.add_handler(CommandHandler("info", user_info_momentum))
-logging.info("starting job queue")
-job_queue = application.job_queue
-today = datetime.today().strftime("%A")
-if today.lower() == "tuesday":
-    job_queue.run_once(tuesday_number_of_tickers, 4)
-if today.lower() == "saturday":
-    job_queue.run_once(weekly_indexes, 4)
-    job_queue.run_once(weekly_etfs, 6)
-job_queue.run_once(weekly_top20, 9)
-job_queue.run_once(weekly_bottom20, 12)
-job_queue.run_once(ytd_top20, 15)
-job_queue.run_once(ytd_bottom20, 18)
-job_queue.run_once(last_correction_top20, 21)
-job_queue.run_once(last_correction_bottom20, 24)
-job_queue.run_once(market_breadth, 27)
-logging.info("job queue ended")
-
-application.run_polling(allowed_updates=Update.ALL_TYPES)
-
-logging.info("Finished TG bot")
-session.close()
-"""
-
-
-# TODO: format to 2 decimals
-def tg_create_DF_for_ytd_weekly_correction(session, previous_day: str):
-    previous_day = "2026-07-07"
+def get_weekly_top_and_bottoms(session, previous_day: str, no_of_results: int):
     query_result_weekly = (
         session.query(StockData.ticker, StockData.weekly_change)
         .filter(StockData.date == previous_day)
         .all()
     )
-    # print(query_result_weekly[:5])
     df_weekly = pd.DataFrame(query_result_weekly, columns=["ticker", "weekly_returns"])
     df_weekly.dropna(inplace=True)
     df_weekly.sort_values(by="weekly_returns", inplace=True, ascending=False)
-    print(df_weekly.head())
-    print("-" * 40)
-    df_weekly_tail = df_weekly.tail(5)
+    df_weekly_tail = df_weekly.tail(no_of_results)
     df_weekly_tail.sort_values(by="weekly_returns", inplace=True)
-    print(df_weekly_tail)
 
+    return df_weekly.head(no_of_results), df_weekly_tail
+
+
+def get_ytd_top_and_bottoms(session, previous_day: str, no_of_results: int):
     query_result_ytd = (
         session.query(StockData.ticker, StockData.ytd)
         .filter(StockData.date == previous_day)
@@ -326,12 +292,13 @@ def tg_create_DF_for_ytd_weekly_correction(session, previous_day: str):
     df_ytd = pd.DataFrame(query_result_ytd, columns=["ticker", "ytd_returns"])
     df_ytd.dropna(inplace=True)
     df_ytd.sort_values(by="ytd_returns", inplace=True, ascending=False)
-    print(df_ytd.head())
-    print("-" * 40)
-    df_ytd_tail = df_ytd.tail(5)
+    df_ytd_tail = df_ytd.tail(no_of_results)
     df_ytd_tail.sort_values(by="ytd_returns", inplace=True)
-    print(df_ytd_tail)
 
+    return df_ytd.head(no_of_results), df_ytd_tail
+
+
+def get_correction_top_and_bottoms(session, previous_day: str, no_of_results: int):
     query_result_correction = (
         session.query(StockData.ticker, StockData.last_correction)
         .filter(StockData.date == previous_day)
@@ -342,14 +309,36 @@ def tg_create_DF_for_ytd_weekly_correction(session, previous_day: str):
     )
     df_correction.dropna(inplace=True)
     df_correction.sort_values(by="correction_returns", inplace=True, ascending=False)
-    print(df_correction.head(5))
-    print("-" * 40)
-    df_correction_tail = df_correction.tail(5)
+    df_correction_tail = df_correction.tail(no_of_results)
     df_correction_tail.sort_values(by="correction_returns", inplace=True)
-    print(df_correction_tail)
+
+    return df_correction.head(no_of_results), df_correction_tail
 
 
-def tg_sequence():
+def tg_create_DF_for_ytd_weekly_correction(session, previous_day: str):
+    df_weekly_top, df_weekly_bottom = get_weekly_top_and_bottoms(
+        session, previous_day, 20
+    )
+    df_ytd_top, df_ytd_bottom = get_ytd_top_and_bottoms(session, previous_day, 20)
+    df_correction_top, df_correction_bottom = get_correction_top_and_bottoms(
+        session, previous_day, 20
+    )
+    return (
+        df_weekly_top,
+        df_weekly_bottom,
+        df_ytd_top,
+        df_ytd_bottom,
+        df_correction_top,
+        df_correction_bottom,
+    )
+
+
+from stock_market.utils import get_previous_day
+
+previous_day = get_previous_day()
+
+
+def tg_sequence(session, previous_day: str):
     """
     get ytd for previous_day
     get last_correction for previous_day
@@ -358,4 +347,76 @@ def tg_sequence():
     provide top20 to the functions. bottom 20 sort once again(?)
     done?
     """
-    pass
+    (
+        df_weekly_top,
+        df_weekly_bottom,
+        df_ytd_top,
+        df_ytd_bottom,
+        df_correction_top,
+        df_correction_bottom,
+    ) = tg_create_DF_for_ytd_weekly_correction(session, previous_day)
+
+    application = Application.builder().token(os.getenv("TG_TOKEN")).build()
+
+    logging.info("starting job queue")
+    job_queue = application.job_queue
+
+    # =========== weekly msgs ================
+
+    job_queue.run_once(
+        weekly_top,
+        5,
+        data={"df": df_weekly_top, "chat_id": os.getenv("CJT_GROUP_ID")},
+    )
+    job_queue.run_once(
+        weekly_bottom,
+        8,
+        data={"df": df_weekly_bottom, "chat_id": os.getenv("CJT_GROUP_ID")},
+    )
+
+    # =========== ytd msgs ================
+
+    job_queue.run_once(
+        ytd_top,
+        11,
+        data={"df": df_ytd_top, "chat_id": os.getenv("CJT_GROUP_ID")},
+    )
+    job_queue.run_once(
+        ytd_bottom,
+        14,
+        data={"df": df_ytd_bottom, "chat_id": os.getenv("CJT_GROUP_ID")},
+    )
+
+    # =========== ytd msgs ================
+
+    job_queue.run_once(
+        last_correction_top,
+        17,
+        data={"df": df_correction_top, "chat_id": os.getenv("CJT_GROUP_ID")},
+    )
+    job_queue.run_once(
+        last_correction_bottom,
+        20,
+        data={"df": df_correction_bottom, "chat_id": os.getenv("CJT_GROUP_ID")},
+    )
+
+    # =========== market breadth ================
+
+    job_queue.run_once(market_breadth, 23)
+
+    logging.info("job queue ended")
+
+    application.run_polling(allowed_updates=Update.ALL_TYPES)
+
+    """
+    application.add_handler(CommandHandler("info", user_info_momentum))
+    today = datetime.today().strftime("%A")
+    if today.lower() == "tuesday":
+        job_queue.run_once(tuesday_number_of_tickers, 4)
+    if today.lower() == "saturday":
+        job_queue.run_once(weekly_indexes, 4)
+        job_queue.run_once(weekly_etfs, 6)
+
+
+    logging.info("Finished TG bot")
+    """

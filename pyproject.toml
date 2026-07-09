@@ -6,7 +6,7 @@ dependencies = [
   "sqlalchemy>=2.0",
   "yfinance",
   "tradingview-ta",
-  "python-telegram-bot",
+  "python-telegram-bot[job-queue]",
   "python-dotenv",
   "pandas",
   "numpy",
