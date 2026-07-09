@@ -61,7 +61,7 @@ def count_returns_from_fridays_to_date(
     to end_date (previous_day/yesterday) closing price"""
 
     data_for_df = []
-    for record in yesterday_data[:5]:
+    for record in yesterday_data:
         symbol = record[0]
         yesterday_closing_price = record[1]
 
@@ -75,11 +75,19 @@ def count_returns_from_fridays_to_date(
             pct_return_result = returns_counter_in_pct(
                 friday_date_closing_price, yesterday_closing_price
             )
-            print(f"{friday_date}, ticker: {symbol}, return: {result}")
+            # print(f"{friday_date}, ticker: {symbol}, return: {pct_return_result}")
 
             session.query(StockData).filter_by(ticker=symbol, date=previous_day).update(
                 {"weekly_change": pct_return_result}
             )
             session.commit()  # i think it can go outside the loop
+            """
+            check_query = (
+                session.query(StockData.weekly_change)
+                .filter(StockData.ticker == symbol, StockData.date == "2026-07-07")
+                .first()
+            )
+            print(f"{symbol}: {check_query}")
+            """
         except:
-            print(f"{friday_date}, did not work out")
+            print(f"{friday_date}, {symbol}, did not work out")

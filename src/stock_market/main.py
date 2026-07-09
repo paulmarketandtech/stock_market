@@ -54,9 +54,9 @@ def main():
         # run_ohlc_extract(list_of_tickers, previous_day)
         # db populations works - just clean the code
         # populate_db_from_files(previous_day)
-        # count_daily_routine_returns(
-        #    session, previous_day, YTD_DATE, LAST_CORRECTION_DATE
-        # )
+        count_daily_routine_returns(
+            session, previous_day, YTD_DATE, LAST_CORRECTION_DATE
+        )
         """
         list_of_tickers_nasdaq = creating_list_of_tickers_nasdaq()
         list_of_tickers_nyse = creating_list_of_tickers_nyse()

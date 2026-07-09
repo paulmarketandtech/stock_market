@@ -33,15 +33,13 @@ def count_daily_routine_returns(
 
     yesterday_data = get_yesterdays_data(session, previous_day)
     previous_friday = get_previous_friday(session)
-    current_week_returns = count_returns_from_fridays_to_date(
-        session, previous_day, yesterday_data, previous_friday
-    )
-    print("-" * 40)
-    print(current_week_returns)
-    """
+    # current_week_returns = count_returns_from_fridays_to_date(
+    #    session, previous_day, yesterday_data, previous_friday
+    # )
     ytd_returns = count_returns_from_given_date_to_date(
         session, previous_day, yesterday_data, ytd_date, "ytd"
     )
+    """
     correction_returns = count_returns_from_given_date_to_date(
         session, previous_day, yesterday_data, correction_date, "last_correction"
     )
