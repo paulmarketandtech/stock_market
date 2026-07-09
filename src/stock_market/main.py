@@ -54,12 +54,12 @@ def main():
         # run_ohlc_extract(list_of_tickers, previous_day)
         # db populations works - just clean the code
         # populate_db_from_files(previous_day)
-        count_daily_routine_returns(
-            session, previous_day, YTD_DATE, LAST_CORRECTION_DATE
-        )
+        # count_daily_routine_returns(
+        #    session, previous_day, YTD_DATE, LAST_CORRECTION_DATE
+        # )
         """
-        list_of_tickers_nasdaq = creating_list_of_tickers_nasdaq()
-        list_of_tickers_nyse = creating_list_of_tickers_nyse()
+        list_of_tickers_nasdaq = creating_list_of_tickers_nasdaq(session)
+        list_of_tickers_nyse = creating_list_of_tickers_nyse(session)
         sma_calculations(
             session,
             previous_day,
@@ -67,8 +67,8 @@ def main():
             list_of_tickers_nasdaq,
             list_of_tickers_nyse,
         )
-        chart_managing(session, previous_day)
         """
+        # chart_managing(session, previous_day)
         # tg_create_DF_for_ytd_weekly_correction(session, previous_day)
     # DONT run fundamentals for now. have to write the whole logic of DB populating
     # run_fundamentals_extract(list_of_tickers[:50])

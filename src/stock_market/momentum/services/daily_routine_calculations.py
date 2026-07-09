@@ -14,7 +14,6 @@ it should be counted everyday, but only displayed on Sat? have to think this thr
 
 from typing import List, Tuple
 
-from stock_market.db_hub.models import StockData
 from stock_market.momentum.services.standard_returns.fridays_returns import (
     count_returns_from_fridays_to_date,
     get_previous_friday,

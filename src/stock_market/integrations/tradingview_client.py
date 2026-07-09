@@ -2,6 +2,7 @@ import os
 
 from tradingview_ta import Interval, TA_Handler, get_multiple_analysis
 
+from stock_market.db_hub.models import StockData
 from stock_market.utils import logging
 
 
