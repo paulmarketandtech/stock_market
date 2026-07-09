@@ -11,6 +11,9 @@ from stock_market.momentum.services.charts_market_breadth import chart_managing
 from stock_market.momentum.services.daily_routine_calculations import (
     count_daily_routine_returns,
 )
+from stock_market.momentum.services.standard_returns.market_breadth_counting import (
+    counting_above_below_SMAs,
+)
 from stock_market.storage.parquet_io import read_parquet, write_parquet
 from stock_market.utils import (
     LAST_CORRECTION_DATE,
@@ -58,6 +61,7 @@ def main():
         #    session, previous_day, YTD_DATE, LAST_CORRECTION_DATE
         # )
         """
+        # SMAs have to be moved to something like daily routine - it cannot be 3 calls in main()
         list_of_tickers_nasdaq = creating_list_of_tickers_nasdaq(session)
         list_of_tickers_nyse = creating_list_of_tickers_nyse(session)
         sma_calculations(
@@ -68,7 +72,8 @@ def main():
             list_of_tickers_nyse,
         )
         """
-        # chart_managing(session, previous_day)
+        # counting_above_below_SMAs(session, previous_day, list_of_tickers)
+        chart_managing(session, previous_day)
         # tg_create_DF_for_ytd_weekly_correction(session, previous_day)
     # DONT run fundamentals for now. have to write the whole logic of DB populating
     # run_fundamentals_extract(list_of_tickers[:50])

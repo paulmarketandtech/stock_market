@@ -1,5 +1,7 @@
 import os
 
+from sqlalchemy import case
+from sqlalchemy.sql import and_
 from tradingview_ta import Interval, TA_Handler, get_multiple_analysis
 
 from stock_market.db_hub.models import StockData
@@ -146,14 +148,14 @@ def sma_calculations(
 ):
 
     logging.info("Starting Nasdaq SMAs DB populating from TV")
-
+    """
     nasdaq_counting_and_populating_DB_with_SMAs(
         session, last_date, nasdaq_list_of_tickers
     )
     logging.info("Nasdaq SMAs done. Starting Nyse SMAs DB populating from TV")
 
     nyse_counting_and_populating_DB_with_SMAs(session, last_date, nyse_list_of_tickers)
-
+    """
     logging.info("Nyse SMAs done. Starting check above/below SMA")
 
     check_above_below_sma(session, list_of_tickers, last_date)
