@@ -106,7 +106,6 @@ def download_all_ohlc(
     combined = (
         pd.concat(all_frames, ignore_index=True) if all_frames else pd.DataFrame()
     )
-    print(total_processed)
     return combined, missing
 
 
