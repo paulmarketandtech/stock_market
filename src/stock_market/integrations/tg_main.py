@@ -6,7 +6,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
 from stock_market.db_hub.models import StockData
-from stock_market.utils import logging
+from stock_market.utils import get_large_cap_tickers, logging
 
 logging.info("Starting telegram bot")
 
@@ -21,15 +21,12 @@ async def user_info_momentum(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await update.message.reply_text("info")
 
 
-# TODO: change to list_of_tickers
 async def tuesday_number_of_tickers(context: ContextTypes.DEFAULT_TYPE):
     try:
-        query_result_5B = (
-            session.query(AllTickersMonthlyUpdate)
-            .filter(AllTickersMonthlyUpdate.market_cap > 5_000_000_000)
-            .all()
-        )
-        msg = f"Number of tickers this week: {len(query_result_5B)}"
+
+        list_of_tickers = get_large_cap_tickers()
+        msg = f"Number of tickers this week: {len(list_of_tickers)}"
+
         await context.bot.send_message(
             chat_id=os.getenv("CJT_GROUP_ID"),
             message_thread_id=os.getenv("TICKER_BOT_ROOM"),
