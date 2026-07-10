@@ -358,6 +358,12 @@ def tg_sequence(session, previous_day: str):
     logging.info("starting job queue")
     job_queue = application.job_queue
 
+    # =========== week opening msg ================
+    #
+    today = datetime.today().strftime("%A")
+    if today.lower() == "tuesday":
+        job_queue.run_once(tuesday_number_of_tickers, 2)
+
     # =========== weekly msgs ================
 
     job_queue.run_once(
@@ -408,9 +414,6 @@ def tg_sequence(session, previous_day: str):
     logging.info("Finished TG bot")
     """
     application.add_handler(CommandHandler("info", user_info_momentum))
-    today = datetime.today().strftime("%A")
-    if today.lower() == "tuesday":
-        job_queue.run_once(tuesday_number_of_tickers, 4)
     if today.lower() == "saturday":
         job_queue.run_once(weekly_indexes, 4)
         job_queue.run_once(weekly_etfs, 6)

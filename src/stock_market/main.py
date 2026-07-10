@@ -4,6 +4,7 @@ load_dotenv()
 from stock_market.config import fundamentals_file_path, ohlc_file_path
 from stock_market.db_hub.session import get_session, init_db
 from stock_market.integrations import yfinance_client
+from stock_market.integrations.telegram_momentum_bot import jap
 from stock_market.integrations.tg_main import (
     tg_create_DF_for_ytd_weekly_correction,
     tg_sequence,
@@ -55,6 +56,8 @@ def main():
         list_of_tickers = get_large_cap_tickers(session)
         previous_day = get_previous_day()
 
+        jap(session)
+        """
         logging.info(
             f"Starting working on {previous_day}. Number of ticker: {len(list_of_tickers)}"
         )
@@ -89,6 +92,7 @@ def main():
         tg_sequence(session, previous_day)
 
         logging.info("Daily proccess done.")
+        """
     # DONT run fundamentals for now. have to write the whole logic of DB populating
     # run_fundamentals_extract(list_of_tickers[:50])
 

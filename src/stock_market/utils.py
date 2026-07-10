@@ -30,10 +30,19 @@ def get_previous_day() -> date:
     return date.today() - timedelta(days=1)
 
 
+def get_commodities_tickers(session) -> list[str]:
+    return [t.ticker for t in session.query(ListOfCommodities).all()]
+
+
+def get_indexes_tickers(session) -> list[str]:
+    return [t.ticker for t in session.query(ListOfIndexes).all()]
+
+
+def get_etfs_tickers(session) -> list[str]:
+    return [t.ticker for t in session.query(ListOfETFs).all()]
+
+
 def get_large_cap_tickers(session, min_market_cap: int = 2_000_000_000) -> list[str]:
-    list_of_commodities = [t.ticker for t in session.query(ListOfCommodities).all()]
-    list_of_indexes = [t.ticker for t in session.query(ListOfIndexes).all()]
-    list_of_etfs = [t.ticker for t in session.query(ListOfETFs).all()]
     list_of_tickers = [
         t.ticker
         for t in session.query(AllTickersMonthlyUpdate)
@@ -41,9 +50,9 @@ def get_large_cap_tickers(session, min_market_cap: int = 2_000_000_000) -> list[
         .all()
     ]
 
-    list_of_tickers.extend(list_of_indexes)
-    list_of_tickers.extend(list_of_commodities)
-    list_of_tickers.extend(list_of_etfs)
+    list_of_tickers.extend(get_commodities_tickers(session))
+    list_of_tickers.extend(get_indexes_tickers(session))
+    list_of_tickers.extend(get_etfs_tickers(session))
 
     return list_of_tickers
 
