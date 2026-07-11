@@ -252,11 +252,16 @@ async def weekly_etfs(context: ContextTypes.DEFAULT_TYPE):
         logging.error("weekly_etfs Error: %s", e)
 
 
-async def market_breadth(context: ContextTypes.DEFAULT_TYPE) -> None:
+async def market_breadth_screen(context: ContextTypes.DEFAULT_TYPE) -> None:
+    job_data = context.job.data
+    previous_day = job_data["date"]
+    chat_id = job_data["chat_id"]
+    room_id = job_data["room_id"]
+
     try:
         await context.bot.send_photo(
-            chat_id=os.getenv("CJT_GROUP_ID"),
-            message_thread_id=os.getenv("TICKER_BOT_ROOM"),
+            chat_id=chat_id,
+            message_thread_id=room_id,
             photo=f"{os.getenv('MARKET_BREADTH_SCREENS_FOLDER')}/{str(previous_day).replace('-', '')}.png",
         )
         logging.info("market_breadth successly sent")
@@ -492,7 +497,15 @@ def tg_sequence(session, previous_day: str):
 
     # =========== market breadth ================
 
-    job_queue.run_once(market_breadth, 23)
+    job_queue.run_once(
+        market_breadth_screen,
+        23,
+        data={
+            "date": previous_day,
+            "chat_id": os.getenv("CJT_GROUP_ID"),
+            "room_id": os.getenv("TICKER_BOT_ROOM"),
+        },
+    )
 
     logging.info("job queue ended")
 

@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 import os
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 
 import pandas as pd
 from sqlalchemy import select
@@ -159,6 +159,3 @@ if __name__ == "__main__":
     application.run_polling(allowed_updates=Update.ALL_TYPES)
     # init_db()
     # scratch_func()
-    """
-
-    """
