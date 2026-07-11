@@ -1,12 +1,19 @@
 import os
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 
 import pandas as pd
+from sqlalchemy import select
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
 from stock_market.db_hub.models import StockData
-from stock_market.utils import get_large_cap_tickers, logging
+from stock_market.utils import (
+    get_commodities_tickers,
+    get_etfs_tickers,
+    get_indexes_tickers,
+    get_large_cap_tickers,
+    logging,
+)
 
 logging.info("Starting telegram bot")
 
@@ -182,74 +189,67 @@ async def weekly_indexes(context: ContextTypes.DEFAULT_TYPE):
     chat_id = job_data["chat_id"]
 
     try:
-        # ------INDEXES----------
-        query_result_indexes = (
-            session.query(
-                IndexesWeeklyChange.date,
-                IndexesWeeklyChange.ticker,
-                IndexesWeeklyChange.one_week_pct_change,
-                IndexesWeeklyChange.four_week_pct_change,
-            )
-            .filter(IndexesWeeklyChange.date == previous_day)
-            .all()
-        )
-        weekly_indexes_msg = "This week indexes performance:\n\n"
-        weekly_indexes_msg += "          1W  |  4Ws\n"
-        for qi in query_result_indexes:
-            weekly_indexes_msg += f"{qi.ticker}: {round(qi.one_week_pct_change,2)}% | {round(qi.four_week_pct_change,2)}%\n"
+        weekly_indexes_msg = "\n\nThis week indexes performance:\n\n"
 
-        # ------COMMODITIES---------
-        query_result_commodities = (
-            session.query(
-                CommoditiesWeeklyChange.date,
-                CommoditiesWeeklyChange.ticker,
-                CommoditiesWeeklyChange.one_week_pct_change,
-                CommoditiesWeeklyChange.four_week_pct_change,
-            )
-            .filter(CommoditiesWeeklyChange.date == previous_day)
-            .all()
-        )
-        weekly_indexes_msg += "\n\nThis week commodities performance:\n\n"
-        weekly_indexes_msg += "          1W  |  4Ws\n"
-        for qc in query_result_commodities:
-            weekly_indexes_msg += f"{qc.ticker}: {round(qc.one_week_pct_change,2)}% | {round(qc.four_week_pct_change,2)}%\n"
+        for _, row in df.iterrows():
+            ticker = row["ticker"]
+            pct_change = row["weekly_returns"]
+            weekly_indexes_msg += f"{ticker}: {round(pct_change, 2)}%\n"
 
         await context.bot.send_message(
-            chat_id=os.getenv("CJT_GROUP_ID"),
+            chat_id=chat_id,
             message_thread_id=os.getenv("TICKER_BOT_ROOM"),
             text=weekly_indexes_msg,
         )
         logging.info("weekly_indexes successly sent")
     except Exception as e:
-        logger.error("weekly_indexes Error: %s", e)
+        logging.error("weekly_indexes Error: %s", e)
+
+
+async def weekly_commodities(context: ContextTypes.DEFAULT_TYPE):
+    job_data = context.job.data
+    df = job_data["df"]
+    chat_id = job_data["chat_id"]
+
+    try:
+        weekly_commodities_msg = "\n\nThis week commodities performance:\n\n"
+
+        for _, row in df.iterrows():
+            ticker = row["ticker"]
+            pct_change = row["weekly_returns"]
+            weekly_commodities_msg += f"{ticker}: {round(pct_change, 2)}%\n"
+
+        await context.bot.send_message(
+            chat_id=chat_id,
+            message_thread_id=os.getenv("TICKER_BOT_ROOM"),
+            text=weekly_commodities_msg,
+        )
+        logging.info("weekly_commodities successly sent")
+    except Exception as e:
+        logging.error("weekly_commodities Error: %s", e)
 
 
 async def weekly_etfs(context: ContextTypes.DEFAULT_TYPE):
+    job_data = context.job.data
+    df = job_data["df"]
+    chat_id = job_data["chat_id"]
+
     try:
-        # ------ETFS----------
-        query_result_etfs = (
-            session.query(
-                EtfsWeeklyChange.date,
-                EtfsWeeklyChange.ticker,
-                EtfsWeeklyChange.one_week_pct_change,
-                EtfsWeeklyChange.four_week_pct_change,
-            )
-            .filter(EtfsWeeklyChange.date == previous_day)
-            .all()
-        )
-        weekly_etfs_msg = "\n\nThis week etfs performance:\n\n"
-        weekly_etfs_msg += "          1W  |  4Ws\n"
-        for qe in query_result_etfs:
-            weekly_etfs_msg += f"{qe.ticker}: {round(qe.one_week_pct_change,2)}% | {round(qe.four_week_pct_change,2)}%\n"
+        weekly_etfs_msg = "\n\nThis week ETFs performance:\n\n"
+
+        for _, row in df.iterrows():
+            ticker = row["ticker"]
+            pct_change = row["weekly_returns"]
+            weekly_etfs_msg += f"{ticker}: {round(pct_change, 2)}%\n"
 
         await context.bot.send_message(
-            chat_id=os.getenv("CJT_GROUP_ID"),
+            chat_id=chat_id,
             message_thread_id=os.getenv("TICKER_BOT_ROOM"),
             text=weekly_etfs_msg,
         )
         logging.info("weekly_etfs successly sent")
     except Exception as e:
-        logger.error("weekly_etfs Error: %s", e)
+        logging.error("weekly_etfs Error: %s", e)
 
 
 async def market_breadth(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -312,6 +312,75 @@ def get_correction_top_and_bottoms(session, previous_day: str, no_of_results: in
     return df_correction.head(no_of_results), df_correction_tail
 
 
+def get_indexes_returns(session, previous_day: str):
+    """It returns last week indexes returns"""
+
+    list_of_indexes = get_indexes_tickers(session)
+
+    query_result_indexes = (
+        select(StockData)
+        .where(StockData.ticker.in_(list_of_indexes))
+        .filter(StockData.date == previous_day)
+    )
+    results = session.scalars(query_result_indexes).all()
+
+    output = []
+    for r in results:
+        output.append((r.ticker, r.weekly_change))
+
+    df_indexes = pd.DataFrame(output, columns=["ticker", "weekly_returns"])
+    df_indexes.dropna(inplace=True)
+    df_indexes.sort_values(by="weekly_returns", inplace=True, ascending=False)
+
+    return df_indexes
+
+
+def get_commodities_returns(session, previous_day: str):
+    """It returns last week commodities returns"""
+
+    list_of_commodities = get_commodities_tickers(session)
+
+    query_result_commodities = (
+        select(StockData)
+        .where(StockData.ticker.in_(list_of_commodities))
+        .filter(StockData.date == previous_day)
+    )
+    results = session.scalars(query_result_commodities).all()
+
+    output = []
+    for r in results:
+        output.append((r.ticker, r.weekly_change))
+
+    df_commodities = pd.DataFrame(output, columns=["ticker", "weekly_returns"])
+    df_commodities.dropna(inplace=True)
+    df_commodities.sort_values(by="weekly_returns", inplace=True, ascending=False)
+
+    return df_commodities
+
+
+def get_etfs_returns(session, previous_day: str):
+    """It returns last week etfs returns"""
+
+    list_of_etfs = get_etfs_tickers(session)
+
+    query_result_etfs = (
+        select(StockData)
+        .where(StockData.ticker.in_(list_of_etfs))
+        .filter(StockData.date == previous_day)
+    )
+    results = session.scalars(query_result_etfs).all()
+
+    output = []
+    for r in results:
+        output.append((r.ticker, r.weekly_change))
+
+    df_etfs = pd.DataFrame(output, columns=["ticker", "weekly_returns"])
+    df_etfs.dropna(inplace=True)
+    df_etfs.sort_values(by="weekly_returns", inplace=True, ascending=False)
+
+    return df_etfs
+
+
 def tg_create_DF_for_ytd_weekly_correction(session, previous_day: str):
     df_weekly_top, df_weekly_bottom = get_weekly_top_and_bottoms(
         session, previous_day, 20
@@ -330,11 +399,6 @@ def tg_create_DF_for_ytd_weekly_correction(session, previous_day: str):
     )
 
 
-from stock_market.utils import get_previous_day
-
-previous_day = get_previous_day()
-
-
 def tg_sequence(session, previous_day: str):
     (
         df_weekly_top,
@@ -351,10 +415,41 @@ def tg_sequence(session, previous_day: str):
     job_queue = application.job_queue
 
     # =========== week opening msg ================
-    #
+
     today = datetime.today().strftime("%A")
     if today.lower() == "tuesday":
         job_queue.run_once(tuesday_number_of_tickers, 2)
+
+    # =========== saturday etfs msgs ================
+
+    today = datetime.today().strftime("%A")
+    if today.lower() == "saturday":
+        job_queue.run_once(
+            weekly_indexes,
+            1,
+            data={
+                "df": get_indexes_returns(session, previous_day),
+                "chat_id": os.getenv("CJT_GROUP_ID"),
+            },
+        )
+
+        job_queue.run_once(
+            weekly_commodities,
+            2,
+            data={
+                "df": get_commodities_returns(session, previous_day),
+                "chat_id": os.getenv("CJT_GROUP_ID"),
+            },
+        )
+
+        job_queue.run_once(
+            weekly_etfs,
+            3,
+            data={
+                "df": get_etfs_returns(session, previous_day),
+                "chat_id": os.getenv("CJT_GROUP_ID"),
+            },
+        )
 
     # =========== weekly msgs ================
 

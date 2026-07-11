@@ -56,8 +56,6 @@ def main():
         list_of_tickers = get_large_cap_tickers(session)
         previous_day = get_previous_day()
 
-        jap(session)
-        """
         logging.info(
             f"Starting working on {previous_day}. Number of ticker: {len(list_of_tickers)}"
         )
@@ -92,7 +90,6 @@ def main():
         tg_sequence(session, previous_day)
 
         logging.info("Daily proccess done.")
-        """
     # DONT run fundamentals for now. have to write the whole logic of DB populating
     # run_fundamentals_extract(list_of_tickers[:50])
 
