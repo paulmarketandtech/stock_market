@@ -336,14 +336,6 @@ previous_day = get_previous_day()
 
 
 def tg_sequence(session, previous_day: str):
-    """
-    get ytd for previous_day
-    get last_correction for previous_day
-    get weekly_changes for previous_day
-    once i have them, turn them into DFs and sort it.
-    provide top20 to the functions. bottom 20 sort once again(?)
-    done?
-    """
     (
         df_weekly_top,
         df_weekly_bottom,
