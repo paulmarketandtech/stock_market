@@ -5,10 +5,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
 from stock_market.momentum.services.tg_bot_calculations import (
-    get_commodities_returns,
     get_DFs_for_etfs_tickers,
-    get_etfs_returns,
-    get_indexes_returns,
     tg_create_DF_for_ytd_weekly_correction,
 )
 from stock_market.utils import get_large_cap_tickers, logging
@@ -18,167 +15,105 @@ logging.info("Starting telegram bot")
 print("TG bot started")
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
-logger = logging.getLogger(__name__)
 
 
 async def user_info_momentum(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    logger.info("User %s started the conversation.", update)
+    logging.info("User %s started the conversation.", update)
     await update.message.reply_text("info")
 
 
 async def tuesday_number_of_tickers(context: ContextTypes.DEFAULT_TYPE):
-    try:
+    job_data = context.job.data
+    chat_id = job_data["chat_id"]
+    room_id = job_data["room_id"]
 
+    try:
         list_of_tickers = get_large_cap_tickers()
         msg = f"Number of tickers this week: {len(list_of_tickers)}"
 
         await context.bot.send_message(
-            chat_id=os.getenv("CJT_GROUP_ID"),
-            message_thread_id=os.getenv("TICKER_BOT_ROOM"),
+            chat_id=chat_id,
+            message_thread_id=room_id,
             text=msg,
         )
         logging.info("tuesday_number_of_tickers successly sent")
     except Exception as e:
-        logger.error("tuesday_number_of_tickers Error: %s", e)
+        logging.error("tuesday_number_of_tickers Error: %s", e)
 
 
-async def ytd_top(context: ContextTypes.DEFAULT_TYPE):
+async def ytd_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
     job_data = context.job.data
     df = job_data["df"]
+    best_worst = job_data["best_worst"]
     chat_id = job_data["chat_id"]
+    room_id = job_data["room_id"]
 
     try:
-
-        ytd_best_msg = f"Best performing stocks YTD\n\n"
+        ytd_returns_msg = f"{best_worst} performing stocks YTD\n\n"
 
         for _, row in df.iterrows():
             ticker = row["ticker"]
             pct_change = row["ytd_returns"]
-            ytd_best_msg += f"{ticker}: {round(pct_change, 2)}%\n"
+            ytd_returns_msg += f"{ticker}: {round(pct_change, 2)}%\n"
 
         await context.bot.send_message(
             chat_id=chat_id,
-            message_thread_id=os.getenv("TICKER_BOT_ROOM"),
-            text=ytd_best_msg,
+            message_thread_id=room_id,
+            text=ytd_returns_msg,
         )
-        logging.info("ytd_top successly sent")
+        logging.info("ytd_best_worst_returns successly sent")
     except Exception as e:
-        logger.error("ytd_top Error: %s", e)
+        logging.error("ytd_best_worst_returns Error: %s", e)
 
 
-async def ytd_bottom(context: ContextTypes.DEFAULT_TYPE):
+async def last_correction_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
     job_data = context.job.data
     df = job_data["df"]
+    best_worst = job_data["best_worst"]
     chat_id = job_data["chat_id"]
+    room_id = job_data["room_id"]
 
     try:
-        ytd_worst_msg = f"Worst performing stocks YTD\n\n"
-
-        for _, row in df.iterrows():
-            ticker = row["ticker"]
-            pct_change = row["ytd_returns"]
-            ytd_worst_msg += f"{ticker}: {round(pct_change, 2)}%\n"
-
-        await context.bot.send_message(
-            chat_id=chat_id,
-            message_thread_id=os.getenv("TICKER_BOT_ROOM"),
-            text=ytd_worst_msg,
-        )
-        logging.info("ytd_bottom successly sent")
-    except Exception as e:
-        logger.error("ytd_bottom Error: %s", e)
-
-
-async def last_correction_top(context: ContextTypes.DEFAULT_TYPE):
-    job_data = context.job.data
-    df = job_data["df"]
-    chat_id = job_data["chat_id"]
-
-    try:
-        last_correction_best_msg = f"Best performing stocks since April 7th\n\n"
+        correction_returns_msg = f"{best_worst} performing stocks since April 7th\n\n"
 
         for _, row in df.iterrows():
             ticker = row["ticker"]
             pct_change = row["correction_returns"]
-            last_correction_best_msg += f"{ticker}: {round(pct_change, 2)}%\n"
+            correction_returns_msg += f"{ticker}: {round(pct_change, 2)}%\n"
 
         await context.bot.send_message(
             chat_id=chat_id,
-            message_thread_id=os.getenv("TICKER_BOT_ROOM"),
-            text=last_correction_best_msg,
+            message_thread_id=room_id,
+            text=correction_returns_msg,
         )
-        logging.info("last_correction_top successly sent")
+        logging.info("last_correction_best_worst_returns successly sent")
     except Exception as e:
-        logger.error("last_correction_top Error: %s", e)
+        logging.error("last_correction_best_worst_returns Error: %s", e)
 
 
-async def last_correction_bottom(context: ContextTypes.DEFAULT_TYPE):
+async def weekly_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
     job_data = context.job.data
     df = job_data["df"]
+    best_worst = job_data["best_worst"]
     chat_id = job_data["chat_id"]
+    room_id = job_data["room_id"]
 
     try:
-        last_correction_worst_msg = f"Worst performing stocks since April 7th\n\n"
-
-        for _, row in df.iterrows():
-            ticker = row["ticker"]
-            pct_change = row["correction_returns"]
-            last_correction_worst_msg += f"{ticker}: {round(pct_change, 2)}%\n"
-
-        await context.bot.send_message(
-            chat_id=chat_id,
-            message_thread_id=os.getenv("TICKER_BOT_ROOM"),
-            text=last_correction_worst_msg,
-        )
-        logging.info("last_correction_bottom successly sent")
-    except Exception as e:
-        logger.error("last_correction_bottom Error: %s", e)
-
-
-async def weekly_top(context: ContextTypes.DEFAULT_TYPE):
-    job_data = context.job.data
-    df = job_data["df"]
-    chat_id = job_data["chat_id"]
-
-    try:
-        weekly_best_msg = "This week best performing stocks:\n\n"
+        weekly_returns_msg = f"{best_worst} performing stocks last week\n\n"
 
         for _, row in df.iterrows():
             ticker = row["ticker"]
             pct_change = row["weekly_returns"]
-            weekly_best_msg += f"{ticker}: {round(pct_change, 2)}%\n"
+            weekly_returns_msg += f"{ticker}: {round(pct_change, 2)}%\n"
 
         await context.bot.send_message(
             chat_id=chat_id,
-            message_thread_id=os.getenv("TICKER_BOT_ROOM"),
-            text=weekly_best_msg,
+            message_thread_id=room_id,
+            text=weekly_returns_msg,
         )
-        logging.info("weekly_top successly sent")
+        logging.info("weekly_best_worst_returns successly sent")
     except Exception as e:
-        logger.error("weekly_top Error: %s", e)
-
-
-async def weekly_bottom(context: ContextTypes.DEFAULT_TYPE):
-    job_data = context.job.data
-    df = job_data["df"]
-    chat_id = job_data["chat_id"]
-
-    try:
-        weekly_worst_msg = "This week worst performing stocks\n\n"
-
-        for _, row in df.iterrows():
-            ticker = row["ticker"]
-            pct_change = row["weekly_returns"]
-            weekly_worst_msg += f"{ticker}: {round(pct_change, 2)}%\n"
-
-        await context.bot.send_message(
-            chat_id=chat_id,
-            message_thread_id=os.getenv("TICKER_BOT_ROOM"),
-            text=weekly_worst_msg,
-        )
-        logging.info("weekly_bottom successly sent")
-    except Exception as e:
-        logger.error("weekly_bottom Error: %s", e)
+        logging.error("weekly_best_worst_returns Error: %s", e)
 
 
 async def weekly_indexes_commodities_etfs_returns(context: ContextTypes.DEFAULT_TYPE):
@@ -186,23 +121,24 @@ async def weekly_indexes_commodities_etfs_returns(context: ContextTypes.DEFAULT_
     string = job_data["string"]
     df = job_data["df"]
     chat_id = job_data["chat_id"]
+    room_id = job_data["room_id"]
 
     try:
-        weekly_indexes_msg = f"\n\nThis week {string} performance:\n\n"
+        weekly_etfs_msg = f"\n\nThis week {string} performance:\n\n"
 
         for _, row in df.iterrows():
             ticker = row["ticker"]
             pct_change = row["weekly_returns"]
-            weekly_indexes_msg += f"{ticker}: {round(pct_change, 2)}%\n"
+            weekly_etfs_msg += f"{ticker}: {round(pct_change, 2)}%\n"
 
         await context.bot.send_message(
             chat_id=chat_id,
-            message_thread_id=os.getenv("TICKER_BOT_ROOM"),
-            text=weekly_indexes_msg,
+            message_thread_id=room_id,
+            text=weekly_etfs_msg,
         )
-        logging.info("weekly_indexes successly sent")
+        logging.info("weekly_indexes_commodities_etfs_returns successly sent")
     except Exception as e:
-        logging.error("weekly_indexes Error: %s", e)
+        logging.error("weekly_indexes_commodities_etfs_returns Error: %s", e)
 
 
 async def market_breadth_screen(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -219,7 +155,7 @@ async def market_breadth_screen(context: ContextTypes.DEFAULT_TYPE) -> None:
         )
         logging.info("market_breadth successly sent")
     except Exception as e:
-        logger.error("market_breadth Error: %s", e)
+        logging.error("market_breadth Error: %s", e)
     context.application.stop_running()
 
 
@@ -233,6 +169,10 @@ def tg_sequence(session, previous_day: str):
         df_correction_bottom,
     ) = tg_create_DF_for_ytd_weekly_correction(session, previous_day)
 
+    best_worst = ["Best", "Worst"]
+    chat_id = os.getenv("CJT_GROUP_ID")
+    room_id = os.getenv("TICKER_BOT_ROOM")
+
     application = Application.builder().token(os.getenv("TG_TOKEN")).build()
 
     logging.info("starting job queue")
@@ -242,17 +182,24 @@ def tg_sequence(session, previous_day: str):
 
     today = datetime.today().strftime("%A")
     if today.lower() == "tuesday":
-        job_queue.run_once(tuesday_number_of_tickers, 2)
+        job_queue.run_once(
+            tuesday_number_of_tickers,
+            1,
+            data={
+                "chat_id": chat_id,
+                "room_id": room_id,
+            },
+        )
 
     # =========== saturday etfs msgs ================
 
     today = datetime.today().strftime("%A")
     if today.lower() == "saturday":
-        list_of_dfs = get_DFs_for_etfs_tickers(session, previous_day)
+        etfs_list_of_dfs = get_DFs_for_etfs_tickers(session, previous_day)
 
         string_choices = ["indexes", "commodities", "ETFs"]
 
-        for string, df in zip(string_choices, list_of_dfs):
+        for string, df in zip(string_choices, etfs_list_of_dfs):
             time.sleep(0.5)
             job_queue.run_once(
                 weekly_indexes_commodities_etfs_returns,
@@ -260,58 +207,71 @@ def tg_sequence(session, previous_day: str):
                 data={
                     "string": string,
                     "df": df,
-                    "chat_id": os.getenv("CJT_GROUP_ID"),
+                    "chat_id": chat_id,
+                    "room_id": room_id,
                 },
             )
 
     # =========== weekly msgs ================
 
-    job_queue.run_once(
-        weekly_top,
-        5,
-        data={"df": df_weekly_top, "chat_id": os.getenv("CJT_GROUP_ID")},
-    )
-    job_queue.run_once(
-        weekly_bottom,
-        8,
-        data={"df": df_weekly_bottom, "chat_id": os.getenv("CJT_GROUP_ID")},
-    )
+    weekly_best_worst_dfs = [df_weekly_top, df_weekly_bottom]
+
+    for string, df in zip(best_worst, weekly_best_worst_dfs):
+        time.sleep(0.5)
+        job_queue.run_once(
+            weekly_best_worst_returns,
+            4,
+            data={
+                "best_worst": string,
+                "df": df,
+                "chat_id": chat_id,
+                "room_id": room_id,
+            },
+        )
 
     # =========== ytd msgs ================
 
-    job_queue.run_once(
-        ytd_top,
-        11,
-        data={"df": df_ytd_top, "chat_id": os.getenv("CJT_GROUP_ID")},
-    )
-    job_queue.run_once(
-        ytd_bottom,
-        14,
-        data={"df": df_ytd_bottom, "chat_id": os.getenv("CJT_GROUP_ID")},
-    )
+    ytd_best_worst_dfs = [df_ytd_top, df_ytd_bottom]
 
-    # =========== ytd msgs ================
+    for string, df in zip(best_worst, ytd_best_worst_dfs):
+        time.sleep(0.5)
+        job_queue.run_once(
+            ytd_best_worst_returns,
+            7,
+            data={
+                "best_worst": string,
+                "df": df,
+                "chat_id": chat_id,
+                "room_id": room_id,
+            },
+        )
 
-    job_queue.run_once(
-        last_correction_top,
-        17,
-        data={"df": df_correction_top, "chat_id": os.getenv("CJT_GROUP_ID")},
-    )
-    job_queue.run_once(
-        last_correction_bottom,
-        20,
-        data={"df": df_correction_bottom, "chat_id": os.getenv("CJT_GROUP_ID")},
-    )
+    # =========== last correction msgs ================
+
+    correction_best_worst_dfs = [df_correction_top, df_correction_bottom]
+
+    for string, df in zip(best_worst, correction_best_worst_dfs):
+        time.sleep(0.5)
+        job_queue.run_once(
+            last_correction_best_worst_returns,
+            9,
+            data={
+                "best_worst": string,
+                "df": df,
+                "chat_id": chat_id,
+                "room_id": room_id,
+            },
+        )
 
     # =========== market breadth ================
 
     job_queue.run_once(
         market_breadth_screen,
-        23,
+        11,
         data={
             "date": previous_day,
-            "chat_id": os.getenv("CJT_GROUP_ID"),
-            "room_id": os.getenv("TICKER_BOT_ROOM"),
+            "chat_id": chat_id,
+            "room_id": room_id,
         },
     )
 
@@ -320,3 +280,10 @@ def tg_sequence(session, previous_day: str):
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
     logging.info("Finished TG bot")
+
+
+if __name__ == "__main__":
+    # it won't work - have to do imports
+    # but also have to find a way how to do less imports...
+
+    tg_sequence(session, previous_day)

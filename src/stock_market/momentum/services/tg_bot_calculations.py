@@ -74,6 +74,7 @@ def tg_create_DF_for_ytd_weekly_correction(session, previous_day: str):
     )
 
 
+# TODO: to be deleted?
 def get_indexes_returns(session, previous_day: str):
     """It returns last week indexes returns"""
 
@@ -97,6 +98,7 @@ def get_indexes_returns(session, previous_day: str):
     return df_indexes
 
 
+# TODO: to be deleted?
 def get_commodities_returns(session, previous_day: str):
     """It returns last week commodities returns"""
 
@@ -120,6 +122,7 @@ def get_commodities_returns(session, previous_day: str):
     return df_commodities
 
 
+# TODO: to be deleted?
 def get_etfs_returns(session, previous_day: str):
     """It returns last week etfs returns"""
 

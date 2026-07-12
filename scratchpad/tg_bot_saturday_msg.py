@@ -17,83 +17,36 @@ from stock_market.momentum.services.standard_returns.fridays_returns import (
     count_returns_from_fridays_to_date,
     get_previous_friday,
 )
-from stock_market.utils import (
-    get_commodities_tickers,
-    get_etfs_tickers,
-    get_indexes_tickers,
-    get_large_cap_tickers,
-    get_previous_day,
-    logging,
+from stock_market.momentum.services.tg_bot_calculations import (
+    tg_create_DF_for_ytd_weekly_correction,
 )
+from stock_market.utils import get_previous_day, logging
 
 logging.info("starting scratching")
 
 
-async def user_info_momentum(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    logging.info("User %s started the conversation.", update)
-    await update.message.reply_text("info jap")
-
-
-def get_returns_for_selected_tickers(
-    previous_day: str, list_of_tickers: list[str]
-) -> pd.DataFrame:
-    """stock_data stores all tickers data.
-    User provides list of any tickers
-    and the func returns last week returns
-    for given list_of_tickers"""
-
-    query_result = (
-        select(StockData)
-        .where(StockData.ticker.in_(list_of_tickers))
-        .filter(StockData.date == previous_day)
-    )
-    results = session.scalars(query_result).all()
-
-    output = []
-    for r in results:
-        output.append((r.ticker, r.weekly_change))
-
-    df = pd.DataFrame(output, columns=["ticker", "weekly_returns"])
-    df.dropna(inplace=True)
-    df.sort_values(by="weekly_returns", inplace=True, ascending=False)
-
-    return df
-
-
-def get_DFs_for_etfs_tickers(session) -> list[pd.DataFrame]:
-    list_of_indexes = get_indexes_tickers(session)
-    list_of_commodities = get_commodities_tickers(session)
-    list_of_etfs = get_etfs_tickers(session)
-
-    df_indexes = get_returns_for_selected_tickers(previous_day, list_of_indexes)
-    df_commodities = get_returns_for_selected_tickers(previous_day, list_of_commodities)
-    df_etfs = get_returns_for_selected_tickers(previous_day, list_of_etfs)
-
-    return [df_indexes, df_commodities, df_etfs]
-
-
-async def weekly_indexes_commodities_etfs_returns(context: ContextTypes.DEFAULT_TYPE):
+async def ytd_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
     job_data = context.job.data
-    string = job_data["string"]
     df = job_data["df"]
+    best_worst = job_data["best_worst"]
     chat_id = job_data["chat_id"]
 
     try:
-        weekly_indexes_msg = f"\n\nThis week {string} performance:\n\n"
+        ytd_returns_msg = f"{best_worst} performing stocks YTD\n\n"
 
         for _, row in df.iterrows():
             ticker = row["ticker"]
-            pct_change = row["weekly_returns"]
-            weekly_indexes_msg += f"{ticker}: {round(pct_change, 2)}%\n"
+            pct_change = row["ytd_returns"]
+            ytd_returns_msg += f"{ticker}: {round(pct_change, 2)}%\n"
 
         await context.bot.send_message(
             chat_id=chat_id,
-            text=weekly_indexes_msg,
+            # message_thread_id=os.getenv("TICKER_BOT_ROOM"),
+            text=ytd_returns_msg,
         )
-        logging.info("weekly_indexes successly sent")
+        logging.info("ytd_top successly sent")
     except Exception as e:
-        logging.error("weekly_indexes Error: %s", e)
-
+        logging.error("ytd_top Error: %s", e)
     # context.application.stop_running()
 
 
@@ -108,17 +61,25 @@ if __name__ == "__main__":
     job_queue = application.job_queue
 
     with get_session() as session:
-        list_of_dfs = get_DFs_for_etfs_tickers(session)
+        (
+            df_weekly_top,
+            df_weekly_bottom,
+            df_ytd_top,
+            df_ytd_bottom,
+            df_correction_top,
+            df_correction_bottom,
+        ) = tg_create_DF_for_ytd_weekly_correction(session, previous_day)
 
-    string_choices = ["indexes", "commodities", "ETFs"]
+    best_worst = ["Best", "Worst"]
+    ytd_best_worst_dfs = [df_ytd_top, df_ytd_bottom]
 
-    for string, df in zip(string_choices, list_of_dfs):
+    for string, df in zip(best_worst, ytd_best_worst_dfs):
         time.sleep(0.5)
         job_queue.run_once(
-            weekly_indexes_commodities_etfs_returns,
-            1,
+            ytd_best_worst_returns,
+            3,
             data={
-                "string": string,
+                "best_worst": string,
                 "df": df,
                 "chat_id": os.getenv("MY_TG_ID"),
             },
