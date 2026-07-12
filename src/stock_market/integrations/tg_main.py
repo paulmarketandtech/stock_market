@@ -6,6 +6,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 
 from stock_market.momentum.services.tg_bot_calculations import (
     get_commodities_returns,
+    get_DFs_for_etfs_tickers,
     get_etfs_returns,
     get_indexes_returns,
     tg_create_DF_for_ytd_weekly_correction,
@@ -180,13 +181,14 @@ async def weekly_bottom(context: ContextTypes.DEFAULT_TYPE):
         logger.error("weekly_bottom Error: %s", e)
 
 
-async def weekly_indexes(context: ContextTypes.DEFAULT_TYPE):
+async def weekly_indexes_commodities_etfs_returns(context: ContextTypes.DEFAULT_TYPE):
     job_data = context.job.data
+    string = job_data["string"]
     df = job_data["df"]
     chat_id = job_data["chat_id"]
 
     try:
-        weekly_indexes_msg = "\n\nThis week indexes performance:\n\n"
+        weekly_indexes_msg = f"\n\nThis week {string} performance:\n\n"
 
         for _, row in df.iterrows():
             ticker = row["ticker"]
@@ -201,52 +203,6 @@ async def weekly_indexes(context: ContextTypes.DEFAULT_TYPE):
         logging.info("weekly_indexes successly sent")
     except Exception as e:
         logging.error("weekly_indexes Error: %s", e)
-
-
-async def weekly_commodities(context: ContextTypes.DEFAULT_TYPE):
-    job_data = context.job.data
-    df = job_data["df"]
-    chat_id = job_data["chat_id"]
-
-    try:
-        weekly_commodities_msg = "\n\nThis week commodities performance:\n\n"
-
-        for _, row in df.iterrows():
-            ticker = row["ticker"]
-            pct_change = row["weekly_returns"]
-            weekly_commodities_msg += f"{ticker}: {round(pct_change, 2)}%\n"
-
-        await context.bot.send_message(
-            chat_id=chat_id,
-            message_thread_id=os.getenv("TICKER_BOT_ROOM"),
-            text=weekly_commodities_msg,
-        )
-        logging.info("weekly_commodities successly sent")
-    except Exception as e:
-        logging.error("weekly_commodities Error: %s", e)
-
-
-async def weekly_etfs(context: ContextTypes.DEFAULT_TYPE):
-    job_data = context.job.data
-    df = job_data["df"]
-    chat_id = job_data["chat_id"]
-
-    try:
-        weekly_etfs_msg = "\n\nThis week ETFs performance:\n\n"
-
-        for _, row in df.iterrows():
-            ticker = row["ticker"]
-            pct_change = row["weekly_returns"]
-            weekly_etfs_msg += f"{ticker}: {round(pct_change, 2)}%\n"
-
-        await context.bot.send_message(
-            chat_id=chat_id,
-            message_thread_id=os.getenv("TICKER_BOT_ROOM"),
-            text=weekly_etfs_msg,
-        )
-        logging.info("weekly_etfs successly sent")
-    except Exception as e:
-        logging.error("weekly_etfs Error: %s", e)
 
 
 async def market_breadth_screen(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -292,32 +248,21 @@ def tg_sequence(session, previous_day: str):
 
     today = datetime.today().strftime("%A")
     if today.lower() == "saturday":
-        job_queue.run_once(
-            weekly_indexes,
-            1,
-            data={
-                "df": get_indexes_returns(session, previous_day),
-                "chat_id": os.getenv("CJT_GROUP_ID"),
-            },
-        )
+        list_of_dfs = get_DFs_for_etfs_tickers(session, previous_day)
 
-        job_queue.run_once(
-            weekly_commodities,
-            2,
-            data={
-                "df": get_commodities_returns(session, previous_day),
-                "chat_id": os.getenv("CJT_GROUP_ID"),
-            },
-        )
+        string_choices = ["indexes", "commodities", "ETFs"]
 
-        job_queue.run_once(
-            weekly_etfs,
-            3,
-            data={
-                "df": get_etfs_returns(session, previous_day),
-                "chat_id": os.getenv("CJT_GROUP_ID"),
-            },
-        )
+        for string, df in zip(string_choices, list_of_dfs):
+            time.sleep(0.5)
+            job_queue.run_once(
+                weekly_indexes_commodities_etfs_returns,
+                1,
+                data={
+                    "string": string,
+                    "df": df,
+                    "chat_id": os.getenv("CJT_GROUP_ID"),
+                },
+            )
 
     # =========== weekly msgs ================
 

@@ -141,3 +141,41 @@ def get_etfs_returns(session, previous_day: str):
     df_etfs.sort_values(by="weekly_returns", inplace=True, ascending=False)
 
     return df_etfs
+
+
+def get_returns_for_selected_tickers(
+    previous_day: str, list_of_tickers: list[str]
+) -> pd.DataFrame:
+    """stock_data stores all tickers data.
+    User provides list of any tickers
+    and the func returns last week returns
+    for given list_of_tickers"""
+
+    query_result = (
+        select(StockData)
+        .where(StockData.ticker.in_(list_of_tickers))
+        .filter(StockData.date == previous_day)
+    )
+    results = session.scalars(query_result).all()
+
+    output = []
+    for r in results:
+        output.append((r.ticker, r.weekly_change))
+
+    df = pd.DataFrame(output, columns=["ticker", "weekly_returns"])
+    df.dropna(inplace=True)
+    df.sort_values(by="weekly_returns", inplace=True, ascending=False)
+
+    return df
+
+
+def get_DFs_for_etfs_tickers(session, previous_day: str) -> list[pd.DataFrame]:
+    list_of_indexes = get_indexes_tickers(session)
+    list_of_commodities = get_commodities_tickers(session)
+    list_of_etfs = get_etfs_tickers(session)
+
+    df_indexes = get_returns_for_selected_tickers(previous_day, list_of_indexes)
+    df_commodities = get_returns_for_selected_tickers(previous_day, list_of_commodities)
+    df_etfs = get_returns_for_selected_tickers(previous_day, list_of_etfs)
+
+    return [df_indexes, df_commodities, df_etfs]

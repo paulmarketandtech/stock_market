@@ -1,8 +1,10 @@
+import time
+
 from dotenv import load_dotenv
 
 load_dotenv()
 import os
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 import pandas as pd
 from sqlalchemy import select
@@ -32,77 +34,52 @@ async def user_info_momentum(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await update.message.reply_text("info jap")
 
 
-def get_commodities_returns(session, previous_day: str):
-    """It returns last week returns for indexes, commodities and etfs"""
-    list_of_commodities = get_commodities_tickers(session)
-    query_result_commodities = (
+def get_returns_for_selected_tickers(
+    previous_day: str, list_of_tickers: list[str]
+) -> pd.DataFrame:
+    """stock_data stores all tickers data.
+    User provides list of any tickers
+    and the func returns last week returns
+    for given list_of_tickers"""
+
+    query_result = (
         select(StockData)
-        .where(StockData.ticker.in_(list_of_commodities))
+        .where(StockData.ticker.in_(list_of_tickers))
         .filter(StockData.date == previous_day)
     )
-    results = session.scalars(query_result_commodities).all()
+    results = session.scalars(query_result).all()
 
     output = []
     for r in results:
         output.append((r.ticker, r.weekly_change))
 
-    df_commodities = pd.DataFrame(output, columns=["ticker", "weekly_returns"])
-    df_commodities.dropna(inplace=True)
-    df_commodities.sort_values(by="weekly_returns", inplace=True, ascending=False)
+    df = pd.DataFrame(output, columns=["ticker", "weekly_returns"])
+    df.dropna(inplace=True)
+    df.sort_values(by="weekly_returns", inplace=True, ascending=False)
 
-    return df_commodities
-
-
-def get_etfs_returns(session, previous_day: str):
-    """It returns last week returns of etfs"""
-    list_of_etfs = get_etfs_tickers(session)
-    query_result_etfs = (
-        select(StockData)
-        .where(StockData.ticker.in_(list_of_etfs))
-        .filter(StockData.date == previous_day)
-    )
-    results = session.scalars(query_result_etfs).all()
-
-    output = []
-    for r in results:
-        output.append((r.ticker, r.weekly_change))
-
-    df_etfs = pd.DataFrame(output, columns=["ticker", "weekly_returns"])
-    df_etfs.dropna(inplace=True)
-    df_etfs.sort_values(by="weekly_returns", inplace=True, ascending=False)
-
-    return df_etfs
+    return df
 
 
-def get_indexes_returns(session, previous_day: str):
-    """It returns last week indexes returns"""
-
+def get_DFs_for_etfs_tickers(session) -> list[pd.DataFrame]:
     list_of_indexes = get_indexes_tickers(session)
+    list_of_commodities = get_commodities_tickers(session)
+    list_of_etfs = get_etfs_tickers(session)
 
-    query_result_indexes = (
-        select(StockData)
-        .where(StockData.ticker.in_(list_of_indexes))
-        .filter(StockData.date == previous_day)
-    )
-    results = session.scalars(query_result_indexes).all()
+    df_indexes = get_returns_for_selected_tickers(previous_day, list_of_indexes)
+    df_commodities = get_returns_for_selected_tickers(previous_day, list_of_commodities)
+    df_etfs = get_returns_for_selected_tickers(previous_day, list_of_etfs)
 
-    output = []
-    for r in results:
-        output.append((r.ticker, r.weekly_change))
-
-    df_indexes = pd.DataFrame(output, columns=["ticker", "weekly_returns"])
-    df_indexes.dropna(inplace=True)
-    df_indexes.sort_values(by="weekly_returns", inplace=True, ascending=False)
-
-    return df_indexes
+    return [df_indexes, df_commodities, df_etfs]
 
 
-async def weekly_indexes(context: ContextTypes.DEFAULT_TYPE):
+async def weekly_indexes_commodities_etfs_returns(context: ContextTypes.DEFAULT_TYPE):
     job_data = context.job.data
+    string = job_data["string"]
     df = job_data["df"]
+    chat_id = job_data["chat_id"]
 
     try:
-        weekly_indexes_msg = "\n\nThis week indexes performance:\n\n"
+        weekly_indexes_msg = f"\n\nThis week {string} performance:\n\n"
 
         for _, row in df.iterrows():
             ticker = row["ticker"]
@@ -110,7 +87,7 @@ async def weekly_indexes(context: ContextTypes.DEFAULT_TYPE):
             weekly_indexes_msg += f"{ticker}: {round(pct_change, 2)}%\n"
 
         await context.bot.send_message(
-            chat_id="enter chat_id",
+            chat_id=chat_id,
             text=weekly_indexes_msg,
         )
         logging.info("weekly_indexes successly sent")
@@ -120,42 +97,33 @@ async def weekly_indexes(context: ContextTypes.DEFAULT_TYPE):
     # context.application.stop_running()
 
 
-def scratch_func():
-    with get_session() as session:
-        list_of_commodities = get_commodities_tickers(session)
-        previous_friday = get_previous_friday(session)
-
-        stmt = (
-            select(StockData)
-            .where(StockData.ticker.in_(list_of_commodities))
-            .filter(StockData.date == previous_friday)
-        )
-
-        results = session.scalars(stmt).all()
-        print(results)
-        for r in results:
-            print(f"{r.ticker}: {r.weekly_change}")
-
-
 if __name__ == "__main__":
-    application = Application.builder().token(os.getenv("TG_TOKEN")).build()
-    job_queue = application.job_queue
+
+    previous_day = date.today() - timedelta(days=2)
 
     # application.add_handler(CommandHandler("info", user_info_momentum))
 
-    with get_session() as session:
-        previous_day = get_previous_day()
-        df_commodities = get_commodities_returns(session, previous_day)
-        df_etfs = get_etfs_returns(session, previous_day)
-        df_indexes = get_indexes_returns(session, previous_day)
+    application = Application.builder().token(os.getenv("TG_TOKEN")).build()
 
-    today = datetime.today().strftime("%A")
-    if today.lower() == "saturday":
+    job_queue = application.job_queue
+
+    with get_session() as session:
+        list_of_dfs = get_DFs_for_etfs_tickers(session)
+
+    string_choices = ["indexes", "commodities", "ETFs"]
+
+    for string, df in zip(string_choices, list_of_dfs):
+        time.sleep(0.5)
         job_queue.run_once(
-            weekly_indexes,
-            2,
-            data={"df": df_indexes},
+            weekly_indexes_commodities_etfs_returns,
+            1,
+            data={
+                "string": string,
+                "df": df,
+                "chat_id": os.getenv("MY_TG_ID"),
+            },
         )
+
     application.run_polling(allowed_updates=Update.ALL_TYPES)
     # init_db()
     # scratch_func()
