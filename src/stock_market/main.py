@@ -4,13 +4,12 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+load_dotenv()
+
 from stock_market.config import fundamentals_file_path, ohlc_file_path
 from stock_market.db_hub.session import get_session, init_db
 from stock_market.integrations import yfinance_client
-from stock_market.integrations.tg_main import (
-    tg_create_DF_for_ytd_weekly_correction,
-    tg_sequence,
-)
+from stock_market.integrations.tg_main import tg_sequence
 from stock_market.integrations.tradingview_client import sma_calculations
 from stock_market.momentum.repositories.ohlc_repo import read_parquet_file, save_ohlc
 from stock_market.momentum.services.charts_market_breadth import chart_managing
@@ -30,7 +29,6 @@ from stock_market.utils import (
     get_previous_day,
 )
 
-load_dotenv()
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
@@ -59,9 +57,8 @@ def run_fundamentals_extract(tickers: list[str]) -> None:
         write_parquet(df, fundamentals_file_path(get_previous_day()))
 
 
-def populate_db_from_files(run_date: date) -> None:
-    # filename = f"ohlc_{str(run_date).replace('-', '')}.parquet"
-    filename = ohlc_file_path(run_date)
+def populate_db_from_files(previous_day: date) -> None:
+    filename = ohlc_file_path(previous_day)
     # read_parquet_file(filename)
     save_ohlc(filename)
 

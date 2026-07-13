@@ -52,7 +52,7 @@ def creating_list_of_tickers_nasdaq(session) -> list[str]:
     nasdaq_list_of_tickers = [
         t.ticker
         for t in session.query(AllTickersMonthlyUpdate)
-        .filter(AllTickersMonthlyUpdate.nasdaq_tickers == True)
+        .filter(AllTickersMonthlyUpdate.nasdaq_tickers)
         .all()
     ]
     return nasdaq_list_of_tickers
@@ -62,7 +62,7 @@ def creating_list_of_tickers_nyse(session) -> list[str]:
     nyse_list_of_tickers = [
         t.ticker
         for t in session.query(AllTickersMonthlyUpdate)
-        .filter(AllTickersMonthlyUpdate.nyse_tickers == True)
+        .filter(AllTickersMonthlyUpdate.nyse_tickers)
         .all()
     ]
     return nyse_list_of_tickers

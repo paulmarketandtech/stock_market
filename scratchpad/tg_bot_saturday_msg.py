@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 from datetime import date, timedelta
@@ -6,12 +7,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
-import logging
-
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-from stock_market.db_hub.models import StockData
+from stock_market.db_hub.models import AllTickersMonthlyUpdate
 from stock_market.db_hub.session import get_session, init_db
 from stock_market.momentum.services.tg_bot_calculations import (
     tg_create_DF_for_ytd_weekly_correction,
@@ -28,16 +27,6 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger(__name__)
-
-
-def creating_list_of_tickers_nasdaq(session) -> list[str]:
-    nasdaq_list_of_tickers = [
-        t.ticker
-        for t in session.query(AllTickersMonthlyUpdate)
-        .filter(AllTickersMonthlyUpdate.nasdaq_tickers == True)
-        .all()
-    ]
-    return nasdaq_list_of_tickers
 
 
 async def ytd_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
@@ -66,7 +55,6 @@ async def ytd_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == "__main__":
-
     previous_day = date.today() - timedelta(days=3)
 
     # application.add_handler(CommandHandler("info", user_info_momentum))
