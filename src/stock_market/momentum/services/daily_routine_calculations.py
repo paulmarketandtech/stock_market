@@ -1,17 +1,3 @@
-"""
-workflow:
-YTD returns
-last correction returns. remove previous correction. count also over here weekly change returns
-market breadth:
-- trading view, download indicators and populate DB.
-  based on that check if close price above or below SMAs - booleans.
-  count above/below SMAs for nasdaq and nyse.
-  create chart screens
-
-weekly change is calculated everyday.
-it should be counted everyday, but only displayed on Sat? have to think this through
-"""
-
 from typing import List, Tuple
 
 from stock_market.momentum.services.standard_returns.fridays_returns import (
@@ -48,17 +34,6 @@ def count_daily_routine_returns(
     correction_returns = count_returns_from_given_date_to_date(
         session, previous_day, yesterday_data, correction_date, "last_correction"
     )
-    """
-    from datetime import datetime
-
-    #TODO: probably wont be used - to be deleted
-    today = datetime.today().strftime("%A")
-    if today.lower() == "saturday":
-        four_weeks_ago_friday = get_four_weeks_ago_friday_close(session)
-        four_weeks_returns = count_returns_from_fridays_to_date(
-            session, previous_day, yesterday_data, four_weeks_ago_friday
-        )
-    """
 
 
 """
