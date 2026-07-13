@@ -1,17 +1,19 @@
-import os
+import logging
+from datetime import date
 
 from sqlalchemy import case
 from sqlalchemy.sql import and_
-from tradingview_ta import Interval, TA_Handler, get_multiple_analysis
+from tradingview_ta import Interval, get_multiple_analysis
 
 from stock_market.db_hub.models import StockData
-from stock_market.utils import logging
+
+logger = logging.getLogger(__name__)
 
 
 def nasdaq_counting_and_populating_DB_with_SMAs(
-    session, last_date: str, nasdaq_list_of_tickers: list[str]
+    session, last_date: date, nasdaq_list_of_tickers: list[str]
 ):
-    logging.info("Nasdaq SMAa calculations started.")
+    logger.info("Nasdaq SMAa calculations started.")
     nasdaq_ta_symbols = []
     nasdaq_string_ticker = "NASDAQ:"
 
@@ -35,16 +37,15 @@ def nasdaq_counting_and_populating_DB_with_SMAs(
             ).update({"ma200": indicator.indicators["SMA200"]})
             session.commit()
         except AttributeError as e:
-            logging.error(f"Error with {ticker} in SMAs: {e}", exc_info=True)
+            logger.error("Error with %s in SMAs: %s", ticker, e, exc_info=True)
 
-    logging.info("Nasdaq SMAa populated successfully.")
-    print("Nasdaq SMAa populated")
+    logger.info("Nasdaq SMAa populated successfully.")
 
 
 def nyse_counting_and_populating_DB_with_SMAs(
-    session, last_date: str, nyse_list_of_tickers: list[str]
+    session, last_date: date, nyse_list_of_tickers: list[str]
 ):
-    logging.info("Nyse SMAa calculations started.")
+    logger.info("Nyse SMAa calculations started.")
     nyse_ta_symbols = []
     nyse_string_ticker = "NYSE:"
 
@@ -68,14 +69,13 @@ def nyse_counting_and_populating_DB_with_SMAs(
             ).update({"ma200": indicator.indicators["SMA200"]})
             session.commit()
         except AttributeError as e:
-            logging.error(f"Error with {ticker} in SMAs: {e}", exc_info=True)
+            logger.error("Error with %s in SMAs: %s", ticker, e, exc_info=True)
 
-    logging.info("Nyse SMAa populated successfully.")
-    print("Nyse SMAa populated")
+    logger.info("Nyse SMAa populated successfully.")
 
 
-def check_above_below_sma(session, tickers: list[str], last_date: str):
-    logging.info("Above/below SMAs counting started.")
+def check_above_below_sma(session, last_date: date, tickers: list[str]):
+    logger.info("Above/below SMAs counting started.")
     for ticker in tickers:
         try:
             session.query(StockData).filter_by(ticker=ticker, date=last_date).update(
@@ -132,28 +132,27 @@ def check_above_below_sma(session, tickers: list[str], last_date: str):
             session.commit()
 
         except Exception as e:
-            logging.error(
-                f"Error in counting above/below SMAs/Bad ticker {e}", exc_info=True
+            logger.error(
+                "Error in counting above/below SMAs/Bad ticker %s", e, exc_info=True
             )
-    logging.info("Above/below SMAs counted.")
-    print("Above/below SMAs counted")
+    logger.info("Above/below SMAs counted.")
 
 
 def sma_calculations(
     session,
-    last_date: str,
+    last_date: date,
     list_of_tickers: list[str],
     nasdaq_list_of_tickers: list[str],
     nyse_list_of_tickers: list[str],
 ):
 
-    logging.info("Starting Nasdaq SMAs DB populating from TV")
+    logger.info("Starting Nasdaq SMAs DB populating from TV")
     nasdaq_counting_and_populating_DB_with_SMAs(
         session, last_date, nasdaq_list_of_tickers
     )
-    logging.info("Nasdaq SMAs done. Starting Nyse SMAs DB populating from TV")
+    logger.info("Nasdaq SMAs done. Starting Nyse SMAs DB populating from TV")
 
     nyse_counting_and_populating_DB_with_SMAs(session, last_date, nyse_list_of_tickers)
 
     logging.info("Nyse SMAs done. Starting check above/below SMA")
-    check_above_below_sma(session, list_of_tickers, last_date)
+    check_above_below_sma(session, last_date, list_of_tickers)

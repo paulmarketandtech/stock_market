@@ -1,17 +1,20 @@
+import logging
+from datetime import date
 from typing import List, Tuple
 
 from stock_market.db_hub.models import StockData
 from stock_market.momentum.services.standard_returns.helper_functions import (
     returns_counter_in_pct,
 )
-from stock_market.utils import logging
+
+logger = logging.getLogger(__name__)
 
 
 def count_returns_from_given_date_to_date(
     session,
-    previous_day: str,
+    previous_day: date,
     yesterday_data: List[Tuple[str, float]],
-    from_date: str,
+    from_date: date,
     ytd_or_correction: str,
 ) -> None:
     """Counts returns from from_date.open price to end_date.close price
@@ -37,7 +40,5 @@ def count_returns_from_given_date_to_date(
                 {ytd_or_correction: pct_return_result}
             )
             session.commit()  # i think it can go outside the loop
-            # print(f"{from_date}, ticker: {symbol}, return: {pct_return_result}")
-        except:
-            print(f"{from_date} {symbol}, did not work out")
-            logging.error(f"{from_date}, {symbol}, did not work out")
+        except Exception as e:
+            logger.error("%s, %s did not work out. Error: %s", from_date, symbol, e)

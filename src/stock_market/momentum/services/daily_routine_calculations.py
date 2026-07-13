@@ -1,18 +1,5 @@
-"""
-workflow:
-YTD returns
-last correction returns. remove previous correction. count also over here weekly change returns
-market breadth:
-- trading view, download indicators and populate DB.
-  based on that check if close price above or below SMAs - booleans.
-  count above/below SMAs for nasdaq and nyse.
-  create chart screens
-
-weekly change is calculated everyday.
-it should be counted everyday, but only displayed on Sat? have to think this through
-"""
-
-from typing import List, Tuple
+import logging
+from datetime import date
 
 from stock_market.momentum.services.standard_returns.fridays_returns import (
     count_returns_from_fridays_to_date,
@@ -24,41 +11,31 @@ from stock_market.momentum.services.standard_returns.helper_functions import (
 from stock_market.momentum.services.standard_returns.last_correction_and_ytd_returns import (
     count_returns_from_given_date_to_date,
 )
-from stock_market.utils import logging
+
+logger = logging.getLogger(__name__)
 
 
 def count_daily_routine_returns(
-    session, previous_day: str, ytd_date: str, correction_date: str
+    session, previous_day: date, ytd_date: date, correction_date: date
 ):
 
     yesterday_data = get_yesterdays_data(session, previous_day)
     previous_friday = get_previous_friday(session)
 
-    logging.info(f"Starting weekly returns. Previous Friday: {previous_friday}")
-    current_week_returns = count_returns_from_fridays_to_date(
+    logger.info("Starting weekly returns. Previous Friday: %s", previous_friday)
+    count_returns_from_fridays_to_date(
         session, previous_day, yesterday_data, previous_friday
     )
 
-    logging.info("Starting ytd returns.")
-    ytd_returns = count_returns_from_given_date_to_date(
+    logger.info("Starting ytd returns.")
+    count_returns_from_given_date_to_date(
         session, previous_day, yesterday_data, ytd_date, "ytd"
     )
 
-    logging.info("Starting las correction returns.")
-    correction_returns = count_returns_from_given_date_to_date(
+    logger.info("Starting las correction returns.")
+    count_returns_from_given_date_to_date(
         session, previous_day, yesterday_data, correction_date, "last_correction"
     )
-    """
-    from datetime import datetime
-
-    #TODO: probably wont be used - to be deleted
-    today = datetime.today().strftime("%A")
-    if today.lower() == "saturday":
-        four_weeks_ago_friday = get_four_weeks_ago_friday_close(session)
-        four_weeks_returns = count_returns_from_fridays_to_date(
-            session, previous_day, yesterday_data, four_weeks_ago_friday
-        )
-    """
 
 
 """

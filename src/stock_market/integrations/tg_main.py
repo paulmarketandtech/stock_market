@@ -1,34 +1,33 @@
+import logging
 import os
-from datetime import datetime
+import time
+from datetime import date, datetime
 
 from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
+from telegram.ext import Application, ContextTypes
 
 from stock_market.momentum.services.tg_bot_calculations import (
     get_DFs_for_etfs_tickers,
     tg_create_DF_for_ytd_weekly_correction,
 )
-from stock_market.utils import get_large_cap_tickers, logging
+from stock_market.utils import get_large_cap_tickers
 
-logging.info("Starting telegram bot")
-
-print("TG bot started")
-
-logging.getLogger("httpx").setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 async def user_info_momentum(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    logging.info("User %s started the conversation.", update)
+    logger.info("User %s started the conversation.", update)
     await update.message.reply_text("info")
 
 
 async def tuesday_number_of_tickers(context: ContextTypes.DEFAULT_TYPE):
     job_data = context.job.data
+    session = job_data["session"]
     chat_id = job_data["chat_id"]
     room_id = job_data["room_id"]
 
     try:
-        list_of_tickers = get_large_cap_tickers()
+        list_of_tickers = get_large_cap_tickers(session)
         msg = f"Number of tickers this week: {len(list_of_tickers)}"
 
         await context.bot.send_message(
@@ -36,9 +35,9 @@ async def tuesday_number_of_tickers(context: ContextTypes.DEFAULT_TYPE):
             message_thread_id=room_id,
             text=msg,
         )
-        logging.info("tuesday_number_of_tickers successly sent")
+        logger.info("tuesday_number_of_tickers successly sent")
     except Exception as e:
-        logging.error("tuesday_number_of_tickers Error: %s", e)
+        logger.error("tuesday_number_of_tickers Error: %s", e)
 
 
 async def ytd_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
@@ -61,9 +60,9 @@ async def ytd_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
             message_thread_id=room_id,
             text=ytd_returns_msg,
         )
-        logging.info("ytd_best_worst_returns successly sent")
+        logger.info("ytd_best_worst_returns successly sent")
     except Exception as e:
-        logging.error("ytd_best_worst_returns Error: %s", e)
+        logger.error("ytd_best_worst_returns Error: %s", e)
 
 
 async def last_correction_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
@@ -86,9 +85,9 @@ async def last_correction_best_worst_returns(context: ContextTypes.DEFAULT_TYPE)
             message_thread_id=room_id,
             text=correction_returns_msg,
         )
-        logging.info("last_correction_best_worst_returns successly sent")
+        logger.info("last_correction_best_worst_returns successly sent")
     except Exception as e:
-        logging.error("last_correction_best_worst_returns Error: %s", e)
+        logger.error("last_correction_best_worst_returns Error: %s", e)
 
 
 async def weekly_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
@@ -111,9 +110,9 @@ async def weekly_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
             message_thread_id=room_id,
             text=weekly_returns_msg,
         )
-        logging.info("weekly_best_worst_returns successly sent")
+        logger.info("weekly_best_worst_returns successly sent")
     except Exception as e:
-        logging.error("weekly_best_worst_returns Error: %s", e)
+        logger.error("weekly_best_worst_returns Error: %s", e)
 
 
 async def weekly_indexes_commodities_etfs_returns(context: ContextTypes.DEFAULT_TYPE):
@@ -136,9 +135,9 @@ async def weekly_indexes_commodities_etfs_returns(context: ContextTypes.DEFAULT_
             message_thread_id=room_id,
             text=weekly_etfs_msg,
         )
-        logging.info("weekly_indexes_commodities_etfs_returns successly sent")
+        logger.info("weekly_indexes_commodities_etfs_returns successly sent")
     except Exception as e:
-        logging.error("weekly_indexes_commodities_etfs_returns Error: %s", e)
+        logger.error("weekly_indexes_commodities_etfs_returns Error: %s", e)
 
 
 async def market_breadth_screen(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -153,13 +152,13 @@ async def market_breadth_screen(context: ContextTypes.DEFAULT_TYPE) -> None:
             message_thread_id=room_id,
             photo=f"{os.getenv('MARKET_BREADTH_SCREENS_FOLDER')}/{str(previous_day).replace('-', '')}.png",
         )
-        logging.info("market_breadth successly sent")
+        logger.info("market_breadth successly sent")
     except Exception as e:
-        logging.error("market_breadth Error: %s", e)
+        logger.error("market_breadth Error: %s", e)
     context.application.stop_running()
 
 
-def tg_sequence(session, previous_day: str):
+def tg_sequence(session, previous_day: date):
     (
         df_weekly_top,
         df_weekly_bottom,
@@ -175,7 +174,7 @@ def tg_sequence(session, previous_day: str):
 
     application = Application.builder().token(os.getenv("TG_TOKEN")).build()
 
-    logging.info("starting job queue")
+    logger.info("starting job queue")
     job_queue = application.job_queue
 
     # =========== week opening msg ================
@@ -186,6 +185,7 @@ def tg_sequence(session, previous_day: str):
             tuesday_number_of_tickers,
             1,
             data={
+                "session": session,
                 "chat_id": chat_id,
                 "room_id": room_id,
             },
@@ -275,15 +275,8 @@ def tg_sequence(session, previous_day: str):
         },
     )
 
-    logging.info("job queue ended")
+    logger.info("job queue ended")
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
-    logging.info("Finished TG bot")
-
-
-if __name__ == "__main__":
-    # it won't work - have to do imports
-    # but also have to find a way how to do less imports...
-
-    tg_sequence(session, previous_day)
+    logger.info("Finished TG bot")

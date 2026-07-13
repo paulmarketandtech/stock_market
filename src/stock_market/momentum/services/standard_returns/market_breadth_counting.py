@@ -1,16 +1,11 @@
-import os
+import logging
+from datetime import date
 
 from sqlalchemy.sql import and_
 
 from stock_market.db_hub.models import MarketBreadth, StockData
-from stock_market.utils import logging
 
-logging.info("Starting Market Breadth counting and DB populating")
-
-
-# TODO: to be deleted
-def delete_empty(session, previous_day):
-    session.query(MarketBreadth).filter(MarketBreadth.date == previous_day).delete()
+logger = logging.getLogger(__name__)
 
 
 def get_change(above, number_of_tickers):
@@ -22,7 +17,7 @@ def get_change(above, number_of_tickers):
         return 0
 
 
-def counting_above_below_SMAs(session, previous_day: str, list_of_tickers: list[str]):
+def counting_above_below_SMAs(session, previous_day: date, list_of_tickers: list[str]):
     query_ma = (
         session.query(StockData)
         .filter(
@@ -30,19 +25,19 @@ def counting_above_below_SMAs(session, previous_day: str, list_of_tickers: list[
         )
         .all()
     )
-    logging.info(f"Number of stocks: {len(query_ma)}")
+    logger.info("Number of stocks: %d", len(query_ma))
 
     # ------ 50
     above50 = 0
     below50 = 0
     for ticker in query_ma:
-        if ticker.ma50_above == True:
+        if ticker.ma50_above:
             above50 += 1
         else:
             below50 += 1
 
-    logging.info(f"Number of stocks above ma50 {above50}")
-    logging.info(f"Number of stocks below ma50 {below50}")
+    logger.info("Number of stocks above ma50 %d", above50)
+    logger.info("Number of stocks below ma50 %d", below50)
 
     market_breadth_50 = get_change(above50, len(query_ma))
 
@@ -50,13 +45,13 @@ def counting_above_below_SMAs(session, previous_day: str, list_of_tickers: list[
     above100 = 0
     below100 = 0
     for ticker in query_ma:
-        if ticker.ma100_above == True:
+        if ticker.ma100_above:
             above100 += 1
         else:
             below100 += 1
 
-    logging.info(f"Number of stocks above ma100 {above100}")
-    logging.info(f"Number of stocks below ma100 {below100}")
+    logger.info("Number of stocks above ma100 %d", above100)
+    logger.info("Number of stocks below ma100 %d", below100)
 
     market_breadth_100 = get_change(above100, len(query_ma))
 
@@ -64,13 +59,13 @@ def counting_above_below_SMAs(session, previous_day: str, list_of_tickers: list[
     above200 = 0
     below200 = 0
     for ticker in query_ma:
-        if ticker.ma200_above == True:
+        if ticker.ma200_above:
             above200 += 1
         else:
             below200 += 1
 
-    logging.info(f"Number of stocks above ma200 {above200}")
-    logging.info(f"Number of stocks below ma200 {below200}")
+    logger.info("Number of stocks above ma200 %d", above200)
+    logger.info("Number of stocks below ma200 %d", below200)
 
     market_breadth_200 = get_change(above200, len(query_ma))
 
@@ -92,9 +87,11 @@ def counting_above_below_SMAs(session, previous_day: str, list_of_tickers: list[
     query_result_mb = (
         session.query(MarketBreadth).filter(MarketBreadth.date == previous_day).all()
     )
-    logging.info(
-        f"Number of new records in market breadth DB as of {previous_day}: {len(query_result_mb)}"
+    logger.info(
+        "Number of new records in market breadth DB as of %s: %d",
+        previous_day,
+        len(query_result_mb),
     )
 
     if len(query_result_mb) > 0:
-        logging.info("Market Breadth completed successfully.")
+        logger.info("Market Breadth completed successfully.")
