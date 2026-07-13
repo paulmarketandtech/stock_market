@@ -1,16 +1,26 @@
 import logging
 import time
 from datetime import date, datetime
+from pathlib import Path
 from typing import Dict
 
 import pandas as pd
 import yfinance as yf
 
-from stock_market.db_hub.models import (
-    AllTickersMonthlyUpdate,
-    ExtraStockMetricsAndStats,
-)
+from stock_market.db_hub.models import ExtraStockMetricsAndStats
+from stock_market.db_hub.session import get_session, init_db
+from stock_market.utils import get_large_cap_tickers, get_previous_day
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    handlers=[
+        logging.FileHandler(
+            Path(__file__).resolve().parents[3] / "logs" / "stock_market.log"
+        ),
+        logging.StreamHandler(),  # also print to console
+    ],
+)
 logger = logging.getLogger(__name__)
 
 REQUIRED_FIELDS = ["fiftyTwoWeekHigh", "fiftyTwoWeekLow"]
@@ -134,7 +144,7 @@ def _update_52_week_extremes(
         record.fifty_two_week_low_value = newLowValue
         record.date_52week_low = previous_day
         logger.info(
-            f"NEW LOW. Updated %s: low %d → %d on %s",
+            "NEW LOW. Updated %s: low %d → %d on %s",
             ticker,
             currentLow,
             newLowValue,
@@ -166,7 +176,7 @@ def update_stock_metrics(session, previous_day: date, df: pd.DataFrame):
             with session.begin_nested():  # savepoint – auto rollback on exception
                 _process_ticker(row, session, previous_day, records)
         except Exception as e:
-            logging.error(f"Skipping {row['ticker']}: {e}", exc_info=True)
+            logger.error("Skipping %s. Error: %s", row["ticker"], e, exc_info=True)
             session.rollback()
     session.commit()
 
@@ -179,4 +189,8 @@ def download_all_fundamentals(session, previous_day: date, list_of_tickers: list
 
 if __name__ == "__main__":
 
-    download_all_fundamentals()
+    init_db()
+    previos_day = get_previous_day()
+    with get_session() as session:
+        list_of_tickers = get_large_cap_tickers(session)
+        download_all_fundamentals(session, previos_day, list_of_tickers)
