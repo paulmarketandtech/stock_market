@@ -1,7 +1,4 @@
-import logging
-import os
 from datetime import date, timedelta
-from typing import Dict
 
 from stock_market.db_hub.models import (
     AllTickersMonthlyUpdate,
@@ -12,12 +9,6 @@ from stock_market.db_hub.models import (
 
 YTD_DATE = date(2026, 1, 2)
 LAST_CORRECTION_DATE = date(2025, 4, 7)
-
-logging.basicConfig(
-    filename=os.getenv("LOG_FILE"),
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
 
 
 """
@@ -61,7 +52,7 @@ def creating_list_of_tickers_nasdaq(session) -> list[str]:
     nasdaq_list_of_tickers = [
         t.ticker
         for t in session.query(AllTickersMonthlyUpdate)
-        .filter(AllTickersMonthlyUpdate.nasdaq_tickers == True)
+        .filter(AllTickersMonthlyUpdate.nasdaq_tickers)
         .all()
     ]
     return nasdaq_list_of_tickers
@@ -71,7 +62,7 @@ def creating_list_of_tickers_nyse(session) -> list[str]:
     nyse_list_of_tickers = [
         t.ticker
         for t in session.query(AllTickersMonthlyUpdate)
-        .filter(AllTickersMonthlyUpdate.nyse_tickers == True)
+        .filter(AllTickersMonthlyUpdate.nyse_tickers)
         .all()
     ]
     return nyse_list_of_tickers

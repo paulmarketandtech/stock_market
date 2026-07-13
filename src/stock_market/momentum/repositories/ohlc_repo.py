@@ -1,20 +1,16 @@
+import logging
+
 import pandas as pd
 
 from stock_market.db_hub.models import StockData
 from stock_market.db_hub.session import get_session
 
+logger = logging.getLogger(__name__)
+
 
 def read_parquet_file(filename: str):
     df = pd.read_parquet(filename)
     df["date"] = pd.to_datetime(df["date"])
-    """
-    search_date = pd.to_datetime("2026-07-07")
-    matching_rows = df[df["date"] == search_date]
-    print(f"0707: {matching_rows}")
-    print(len(matching_rows))
-    # print(df)
-    print(len(df))
-    """
     return df
 
 
@@ -36,7 +32,7 @@ def save_ohlc(filename: str):
                 session.add(stock_price)
 
         session.commit()
-        print("DB Populated")
+        logger.info("DB Populated")
 
     except Exception as e:
-        print(f"Database population failed: {e}")
+        logger.error("Database population failed %s: ", e, exc_info=True)

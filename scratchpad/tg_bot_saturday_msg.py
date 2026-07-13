@@ -1,28 +1,32 @@
+import logging
+import os
 import time
+from datetime import date, timedelta
+from pathlib import Path
 
 from dotenv import load_dotenv
 
 load_dotenv()
-import os
-from datetime import date, datetime, timedelta
-
-import pandas as pd
-from sqlalchemy import select
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-from stock_market.db_hub.models import StockData
+from stock_market.db_hub.models import AllTickersMonthlyUpdate
 from stock_market.db_hub.session import get_session, init_db
-from stock_market.momentum.services.standard_returns.fridays_returns import (
-    count_returns_from_fridays_to_date,
-    get_previous_friday,
-)
 from stock_market.momentum.services.tg_bot_calculations import (
     tg_create_DF_for_ytd_weekly_correction,
 )
-from stock_market.utils import get_previous_day, logging
 
-logging.info("starting scratching")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    handlers=[
+        logging.FileHandler(
+            Path(__file__).resolve().parents[1] / "logs" / "stock_market.log"
+        ),
+        logging.StreamHandler(),  # also print to console
+    ],
+)
+logger = logging.getLogger(__name__)
 
 
 async def ytd_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
@@ -44,15 +48,14 @@ async def ytd_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
             # message_thread_id=os.getenv("TICKER_BOT_ROOM"),
             text=ytd_returns_msg,
         )
-        logging.info("ytd_top successly sent")
+        logger.info("ytd_top successly sent")
     except Exception as e:
-        logging.error("ytd_top Error: %s", e)
+        logger.error("ytd_top Error: %s", e)
     # context.application.stop_running()
 
 
 if __name__ == "__main__":
-
-    previous_day = date.today() - timedelta(days=2)
+    previous_day = date.today() - timedelta(days=3)
 
     # application.add_handler(CommandHandler("info", user_info_momentum))
 

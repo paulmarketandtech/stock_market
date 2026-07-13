@@ -1,14 +1,15 @@
+import logging
 import os
+from datetime import date
 
 import matplotlib
 
 from stock_market.db_hub.models import MarketBreadth
-from stock_market.utils import logging
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-logging.info("Starting chart ploting")
+logger = logging.getLogger(__name__)
 
 
 def generate_y_and_x_values_for_chart(session):
@@ -35,7 +36,7 @@ def generate_y_and_x_values_for_chart(session):
     return lst50, lst100, lst200, lst_dates
 
 
-def chart_creation(y1, y2, y3, x, previous_day):
+def chart_creation(y1, y2, y3, x, previous_day: date):
     try:
         fig, ax = plt.subplots(figsize=(12, 8))
 
@@ -54,9 +55,9 @@ def chart_creation(y1, y2, y3, x, previous_day):
             f"{os.getenv('MARKET_BREADTH_SCREENS_FOLDER')}/{str(previous_day).replace('-', '')}.png"
         )
 
-        logging.info("Chart created successfully.")
+        logger.info("Chart created successfully.")
     except Exception as e:
-        logging.info(f"Chart went wrong. Error: {e}")
+        logger.error("Chart went wrong. Error: %s", e)
 
 
 def chart_managing(session, previous_day):

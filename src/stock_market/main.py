@@ -1,13 +1,15 @@
+import logging
+from datetime import date
+from pathlib import Path
+
 from dotenv import load_dotenv
 
 load_dotenv()
+
 from stock_market.config import fundamentals_file_path, ohlc_file_path
 from stock_market.db_hub.session import get_session, init_db
 from stock_market.integrations import yfinance_client
-from stock_market.integrations.tg_main import (
-    tg_create_DF_for_ytd_weekly_correction,
-    tg_sequence,
-)
+from stock_market.integrations.tg_main import tg_sequence
 from stock_market.integrations.tradingview_client import sma_calculations
 from stock_market.integrations.yfinance_extra_metrics import download_all_fundamentals
 from stock_market.momentum.repositories.ohlc_repo import read_parquet_file, save_ohlc
@@ -26,11 +28,23 @@ from stock_market.utils import (
     creating_list_of_tickers_nyse,
     get_large_cap_tickers,
     get_previous_day,
-    logging,
 )
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    handlers=[
+        logging.FileHandler(
+            Path(__file__).resolve().parents[2] / "logs" / "stock_market.log"
+        ),
+        logging.StreamHandler(),  # also print to console
+    ],
+)
 
-def run_ohlc_extract(tickers: list[str], previous_day: str) -> None:
+logger = logging.getLogger(__name__)
+
+
+def run_ohlc_extract(tickers: list[str], previous_day: date) -> None:
     df, missing = yfinance_client.download_all_ohlc(tickers, previous_day)
     if not df.empty:
         write_parquet(df, ohlc_file_path(previous_day))
@@ -46,9 +60,8 @@ def run_fundamentals_extract(session, previous_day: str, tickers: list[str]) -> 
     """
 
 
-def populate_db_from_files(run_date) -> None:
-    # filename = f"ohlc_{str(run_date).replace('-', '')}.parquet"
-    filename = ohlc_file_path(run_date)
+def populate_db_from_files(previous_day: date) -> None:
+    filename = ohlc_file_path(previous_day)
     # read_parquet_file(filename)
     save_ohlc(filename)
 
@@ -58,24 +71,26 @@ def main():
         list_of_tickers = get_large_cap_tickers(session)
         previous_day = get_previous_day()
 
-        """
-        logging.info(
-            f"Starting working on {previous_day}. Number of ticker: {len(list_of_tickers)}"
+        logger.info(
+            "Starting working on %d. Number of ticker: %s",
+            previous_day,
+            len(list_of_tickers),
         )
-        logging.info("Starting YF download.")
+
+        logger.info("Starting YF download.")
         run_ohlc_extract(list_of_tickers, previous_day)
 
-        logging.info("Finished YF and populating the DB")
+        logger.info("Finished YF and populating the DB")
         populate_db_from_files(previous_day)
 
-        logging.info(
+        logger.info(
             "DB populated, starting daily routine: weekly, ytd, last correction returns"
         )
         count_daily_routine_returns(
             session, previous_day, YTD_DATE, LAST_CORRECTION_DATE
         )
 
-        logging.info("Daily routine done. Starting SMAs calculations")
+        logger.info("Daily routine done. Starting SMAs calculations")
         # SMAs have to be moved to something like daily routine - it cannot be 3 calls in main()
         list_of_tickers_nasdaq = creating_list_of_tickers_nasdaq(session)
         list_of_tickers_nyse = creating_list_of_tickers_nyse(session)
@@ -89,13 +104,12 @@ def main():
         counting_above_below_SMAs(session, previous_day, list_of_tickers)
         chart_managing(session, previous_day)
 
-        logging.info("SMAs related finished. Sending TG messages")
+        logger.info("SMAs related finished. Sending TG messages")
         tg_sequence(session, previous_day)
 
-        """
-        logging.info("Daily proccess done.")
-        # DONT run fundamentals for now. have to write the whole logic of DB populating
-        run_fundamentals_extract(session, previous_day, list_of_tickers[:2])
+        logger.info("Daily proccess done.")
+    # DONT run fundamentals for now. have to write the whole logic of DB populating
+    # run_fundamentals_extract(session, previous_day, list_of_tickers[:2])
 
 
 if __name__ == "__main__":

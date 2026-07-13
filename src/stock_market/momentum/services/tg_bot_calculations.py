@@ -1,3 +1,5 @@
+from datetime import date
+
 import pandas as pd
 from sqlalchemy import select
 
@@ -9,7 +11,7 @@ from stock_market.utils import (
 )
 
 
-def get_weekly_top_and_bottoms(session, previous_day: str, no_of_results: int):
+def get_weekly_top_and_bottoms(session, previous_day: date, no_of_results: int):
     query_result_weekly = (
         session.query(StockData.ticker, StockData.weekly_change)
         .filter(StockData.date == previous_day)
@@ -24,7 +26,7 @@ def get_weekly_top_and_bottoms(session, previous_day: str, no_of_results: int):
     return df_weekly.head(no_of_results), df_weekly_tail
 
 
-def get_ytd_top_and_bottoms(session, previous_day: str, no_of_results: int):
+def get_ytd_top_and_bottoms(session, previous_day: date, no_of_results: int):
     query_result_ytd = (
         session.query(StockData.ticker, StockData.ytd)
         .filter(StockData.date == previous_day)
@@ -39,7 +41,7 @@ def get_ytd_top_and_bottoms(session, previous_day: str, no_of_results: int):
     return df_ytd.head(no_of_results), df_ytd_tail
 
 
-def get_correction_top_and_bottoms(session, previous_day: str, no_of_results: int):
+def get_correction_top_and_bottoms(session, previous_day: date, no_of_results: int):
     query_result_correction = (
         session.query(StockData.ticker, StockData.last_correction)
         .filter(StockData.date == previous_day)
@@ -56,7 +58,7 @@ def get_correction_top_and_bottoms(session, previous_day: str, no_of_results: in
     return df_correction.head(no_of_results), df_correction_tail
 
 
-def tg_create_DF_for_ytd_weekly_correction(session, previous_day: str):
+def tg_create_DF_for_ytd_weekly_correction(session, previous_day: date):
     df_weekly_top, df_weekly_bottom = get_weekly_top_and_bottoms(
         session, previous_day, 30
     )
@@ -75,7 +77,7 @@ def tg_create_DF_for_ytd_weekly_correction(session, previous_day: str):
 
 
 # TODO: to be deleted?
-def get_indexes_returns(session, previous_day: str):
+def get_indexes_returns(session, previous_day: date):
     """It returns last week indexes returns"""
 
     list_of_indexes = get_indexes_tickers(session)
@@ -99,7 +101,7 @@ def get_indexes_returns(session, previous_day: str):
 
 
 # TODO: to be deleted?
-def get_commodities_returns(session, previous_day: str):
+def get_commodities_returns(session, previous_day: date):
     """It returns last week commodities returns"""
 
     list_of_commodities = get_commodities_tickers(session)
@@ -123,7 +125,7 @@ def get_commodities_returns(session, previous_day: str):
 
 
 # TODO: to be deleted?
-def get_etfs_returns(session, previous_day: str):
+def get_etfs_returns(session, previous_day: date):
     """It returns last week etfs returns"""
 
     list_of_etfs = get_etfs_tickers(session)
@@ -147,7 +149,7 @@ def get_etfs_returns(session, previous_day: str):
 
 
 def get_returns_for_selected_tickers(
-    previous_day: str, list_of_tickers: list[str]
+    previous_day: date, list_of_tickers: list[str]
 ) -> pd.DataFrame:
     """stock_data stores all tickers data.
     User provides list of any tickers
@@ -172,7 +174,7 @@ def get_returns_for_selected_tickers(
     return df
 
 
-def get_DFs_for_etfs_tickers(session, previous_day: str) -> list[pd.DataFrame]:
+def get_DFs_for_etfs_tickers(session, previous_day: date) -> list[pd.DataFrame]:
     list_of_indexes = get_indexes_tickers(session)
     list_of_commodities = get_commodities_tickers(session)
     list_of_etfs = get_etfs_tickers(session)

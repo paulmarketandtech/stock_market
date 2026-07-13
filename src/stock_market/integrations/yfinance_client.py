@@ -1,20 +1,15 @@
-import json
-import os
+import logging
 import time
 from datetime import date
 
 import pandas as pd
 import yfinance as yf
-from tqdm import tqdm
 
 BATCH_SIZE = 250
 SLEEP_BETWEEN = 10
 
 
-import logging
-
 logger = logging.getLogger(__name__)
-# print(f"logger from YF: {logger}")
 
 # ====================== 1. OHLCV Download ======================
 
@@ -28,7 +23,7 @@ COLUMN_RENAME = {
 }
 
 
-def fetch_ohlc_batch(tickers: list[str], previous_day: str) -> pd.DataFrame:
+def fetch_ohlc_batch(tickers: list[str], previous_day: date) -> pd.DataFrame:
     """Download OHLC for a batch of tickers, return long format:
     [ticker, date, open, high, low, close, volume]
     """
@@ -69,7 +64,7 @@ def fetch_ohlc_batch(tickers: list[str], previous_day: str) -> pd.DataFrame:
 
 def download_all_ohlc(
     tickers: list[str],
-    previous_day: str,
+    previous_day: date,
     batch_size: int = BATCH_SIZE,
     sleep_seconds: float = SLEEP_BETWEEN,
 ) -> tuple[pd.DataFrame, list[str]]:

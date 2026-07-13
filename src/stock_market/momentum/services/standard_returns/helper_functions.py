@@ -1,14 +1,3 @@
-"""
-workflow:
-pull from DB opening prices from year beggining.
-pull from DB closing prices from previous_day.
-count returns
-populate DB with returns
-all in StockData
-"""
-
-from datetime import date, datetime, timedelta
-
 from stock_market.db_hub.models import StockData
 
 

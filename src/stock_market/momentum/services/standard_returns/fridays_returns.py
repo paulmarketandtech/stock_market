@@ -1,3 +1,4 @@
+import logging
 from datetime import date, datetime, timedelta
 from typing import List, Tuple
 
@@ -5,7 +6,8 @@ from stock_market.db_hub.models import StockData
 from stock_market.momentum.services.standard_returns.helper_functions import (
     returns_counter_in_pct,
 )
-from stock_market.utils import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_previous_friday(session):
@@ -51,16 +53,15 @@ def get_four_weeks_ago_friday(session):
 
 def count_returns_from_fridays_to_date(
     session,
-    previous_day: str,
+    previous_day: date,
     yesterday_data: List[Tuple[str, float]],
-    friday_date: str,
+    friday_date: date,
 ) -> None:
     """Counts returns from
     previous friday close price and four weeks before friday close price
     (fridays use closing, not opening price)
     to end_date (previous_day/yesterday) closing price"""
 
-    data_for_df = []
     for record in yesterday_data:
         symbol = record[0]
         yesterday_closing_price = record[1]
@@ -75,12 +76,12 @@ def count_returns_from_fridays_to_date(
             pct_return_result = returns_counter_in_pct(
                 friday_date_closing_price, yesterday_closing_price
             )
-            # print(f"{friday_date}, ticker: {symbol}, return: {pct_return_result}")
 
             session.query(StockData).filter_by(ticker=symbol, date=previous_day).update(
                 {"weekly_change": pct_return_result}
             )
             session.commit()  # i think it can go outside the loop
-        except:
-            print(f"{friday_date}, {symbol}, did not work out")
-            logging.error(f"{friday_date}, {symbol}, did not work out")
+        except Exception as e:
+            logger.error("%s, %s did not work out. Error: %s", friday_date, symbol, e)
+
+    logger.info("Done count_returns_from_fridays_to_date")
