@@ -1,3 +1,4 @@
+import logging
 import time
 from datetime import date, datetime
 from typing import Dict
@@ -9,9 +10,8 @@ from stock_market.db_hub.models import (
     AllTickersMonthlyUpdate,
     ExtraStockMetricsAndStats,
 )
-from stock_market.utils import logging
 
-logging.info(f"Starting Extra Stock Metrics")
+logger = logging.getLogger(__name__)
 
 REQUIRED_FIELDS = ["fiftyTwoWeekHigh", "fiftyTwoWeekLow"]
 OPTIONAL_FIELDS = [
@@ -34,8 +34,8 @@ def fetch_stock_data(symbol_list: list[str]) -> pd.DataFrame:
     for i, ticker in enumerate(symbol_list):
         time.sleep(0.1)
         if (i + 1) % 300 == 0:
-            logging.info(f"Processing {i + 1}/{len(symbol_list)}")
-            logging.info(datetime.now() - start)
+            logger.info("Processing %d", (i + 1) / len(symbol_list))
+            logger.info(datetime.now() - start)
             print(f"Processing {i + 1}/{len(symbol_list)}")
             print(datetime.now() - start)
 
@@ -49,8 +49,8 @@ def fetch_stock_data(symbol_list: list[str]) -> pd.DataFrame:
             ]
 
             if missing_required:
-                logging.warning(
-                    f"{ticker}: missing required fields {missing_required}, skipping"
+                logger.warning(
+                    "%s: missing required fields %s, skipping", ticker, missing_required
                 )
                 continue
 
@@ -60,21 +60,21 @@ def fetch_stock_data(symbol_list: list[str]) -> pd.DataFrame:
 
             rows.append(row)
 
-            logging.info(f"Ticker {ticker} downloaded", exc_info=True)
+            logger.info("Ticker %s downloaded", ticker)
         except Exception as e:
-            logging.error(
-                f"Error {ticker} while downloading from YF: {e}", exc_info=True
+            logger.error(
+                "Error %s while downloading from YF: %s", ticker, e, exc_info=True
             )
             continue
 
     df = pd.DataFrame(rows)
 
     end = datetime.now()
-    logging.info(f"total time: {end-start}")
+    logger.info("total time: %d", (end - start))
     return df
 
 
-def _insert_new_ticker(session, row: pd.Series, previous_day: str) -> None:
+def _insert_new_ticker(session, row: pd.Series, previous_day: date) -> None:
     session.add(
         ExtraStockMetricsAndStats(
             ticker=row["ticker"],
@@ -92,7 +92,7 @@ def _insert_new_ticker(session, row: pd.Series, previous_day: str) -> None:
             date_short_interest=row["dateShortInterest"],
         )
     )
-    logging.info(f"NEW TICKER. Inserted {row['ticker']}")
+    logging.info("NEW TICKER. Inserted %s", row["ticker"])
 
 
 def _upsert_metadata(row: pd.Series, record: ExtraStockMetricsAndStats) -> None:
@@ -107,7 +107,7 @@ def _upsert_metadata(row: pd.Series, record: ExtraStockMetricsAndStats) -> None:
 
 
 def _update_52_week_extremes(
-    row: pd.Series, record: ExtraStockMetricsAndStats, previous_day: str
+    row: pd.Series, record: ExtraStockMetricsAndStats, previous_day: date
 ) -> None:
     """
     there are no else statements becasue if is not true then nothing happens
@@ -122,22 +122,30 @@ def _update_52_week_extremes(
     if currentHigh is None or newHighValue > currentHigh:
         record.fifty_two_week_high_value = newHighValue
         record.date_52week_high = previous_day
-        logging.info(
-            f"NEW HIGH. Updated {ticker}: high {currentHigh} → {newHighValue} on {previous_day}"
+        logger.info(
+            "NEW HIGH. Updated %s: high %d → %d on %s",
+            ticker,
+            currentHigh,
+            newHighValue,
+            previous_day,
         )
 
     if currentLow is None or newLowValue < currentLow:
         record.fifty_two_week_low_value = newLowValue
         record.date_52week_low = previous_day
-        logging.info(
-            f"NEW LOW. Updated {ticker}: low {currentLow} → {newLowValue} on {previous_day}"
+        logger.info(
+            f"NEW LOW. Updated %s: low %d → %d on %s",
+            ticker,
+            currentLow,
+            newLowValue,
+            previous_day,
         )
 
 
 def _process_ticker(
     row: pd.Series,
     session,
-    previous_day: str,
+    previous_day: date,
     records: Dict[str, ExtraStockMetricsAndStats],
 ) -> None:
     ticker = row["ticker"]
@@ -149,7 +157,7 @@ def _process_ticker(
         _update_52_week_extremes(row, record, previous_day)
 
 
-def update_stock_metrics(session, previous_day: str, df: pd.DataFrame):
+def update_stock_metrics(session, previous_day: date, df: pd.DataFrame):
     records: Dict[str, ExtraStockMetricsAndStats] = {
         r.ticker: r for r in session.query(ExtraStockMetricsAndStats).all()
     }
@@ -163,7 +171,7 @@ def update_stock_metrics(session, previous_day: str, df: pd.DataFrame):
     session.commit()
 
 
-def download_all_fundamentals(session, previous_day: str, list_of_tickers: list[str]):
+def download_all_fundamentals(session, previous_day: date, list_of_tickers: list[str]):
     df = fetch_stock_data(list_of_tickers)
     update_stock_metrics(session, previous_day, df)
     return df
