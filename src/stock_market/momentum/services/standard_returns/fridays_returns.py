@@ -80,8 +80,8 @@ def count_returns_from_fridays_to_date(
             session.query(StockData).filter_by(ticker=symbol, date=previous_day).update(
                 {"weekly_change": pct_return_result}
             )
-            session.commit()  # i think it can go outside the loop
         except Exception as e:
             logger.error("%s, %s did not work out. Error: %s", friday_date, symbol, e)
 
+    session.commit()
     logger.info("Done count_returns_from_fridays_to_date")
