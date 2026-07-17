@@ -1,32 +1,16 @@
 import logging
 import time
 from datetime import date, datetime
-from pathlib import Path
 from typing import Dict
 
 import pandas as pd
 import yfinance as yf
-from dotenv import load_dotenv
-
-load_dotenv()
 from sqlalchemy.orm import Session
 
 from stock_market.config import fundamentals_file_path
 from stock_market.db_hub.models import ExtraStockMetricsAndStats
-from stock_market.db_hub.session import get_session, init_db
-from stock_market.storage.parquet_io import read_parquet, write_parquet
-from stock_market.utils import get_large_cap_tickers, get_previous_day
+from stock_market.storage.parquet_io import write_parquet
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-    handlers=[
-        logging.FileHandler(
-            Path(__file__).resolve().parents[3] / "logs" / "stock_market.log"
-        ),
-        logging.StreamHandler(),  # also print to console
-    ],
-)
 logger = logging.getLogger(__name__)
 
 REQUIRED_FIELDS = ["fiftyTwoWeekHigh", "fiftyTwoWeekLow"]
@@ -48,7 +32,7 @@ def fetch_stock_data(symbol_list: list[str]) -> pd.DataFrame:
 
     start = datetime.now()
     for i, ticker in enumerate(symbol_list):
-        time.sleep(0.1)
+        time.sleep(0.2)
         if (i + 1) % 300 == 0:
             logger.info("Processing %d", (i + 1) / len(symbol_list))
             logger.info(datetime.now() - start)
@@ -184,25 +168,17 @@ class ExtraMetricsUpdater:
                     self._process_ticker(row, records)
             except Exception as e:
                 logger.error("Skipping %s. Error: %s", row["ticker"], e, exc_info=True)
-        session.commit()
+        self.session.commit()
 
 
-# TODO: add another function which reads the DF from the file instead of passing it in a return
-def download_all_fundamentals(previous_day: date, list_of_tickers: list[str]):
+# TODO: add another function which reads the DF from the file instead of passing it in a return - think about is it really needed now?
+def download_all_fundamentals(
+    session: Session, previous_day: date, list_of_tickers: list[str]
+):
     df = fetch_stock_data(list_of_tickers)
+
     if not df.empty:
         write_parquet(df, fundamentals_file_path(previous_day))
-    return df
-
-
-if __name__ == "__main__":
-
-    init_db()
-    previous_day = get_previous_day()
-
-    with get_session() as session:
-        list_of_tickers = get_large_cap_tickers(session)
-        df = download_all_fundamentals(previous_day, list_of_tickers)
 
         updater = ExtraMetricsUpdater(session=session, previous_day=previous_day)
         updater.update_stock_metrics(df=df)

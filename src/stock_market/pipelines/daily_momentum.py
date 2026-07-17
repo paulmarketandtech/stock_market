@@ -3,7 +3,7 @@ from datetime import date
 
 from stock_market.config import ohlc_file_path
 from stock_market.db_hub.session import get_session
-from stock_market.integrations import tg_main, yfinance_client
+from stock_market.integrations import tg_main, yfinance_ohlc_client
 from stock_market.momentum.repositories import market_breadth_repo, ohlc_repo
 from stock_market.momentum.services import daily_routine_calculations
 from stock_market.storage.parquet_io import write_parquet
@@ -17,21 +17,12 @@ from stock_market.utils import (
 logger = logging.getLogger(__name__)
 
 
-# TODO: has to be moved from here
 def run_ohlc_extract(tickers: list[str], previous_day: date) -> None:
-    df, missing = yfinance_client.download_all_ohlc(tickers, previous_day)
+    df, missing = yfinance_ohlc_client.download_all_ohlc(tickers, previous_day)
     if not df.empty:
         write_parquet(df, ohlc_file_path(previous_day))
     if missing:
         print("OHLC extract finished with %d missing tickers", len(missing))
-
-    """
-# TODO: has to be moved from here
-def run_fundamentals_extract(previous_day: date, tickers: list[str]) -> None:
-    df = download_all_fundamentals(previous_day, tickers)
-    if not df.empty:
-        write_parquet(df, fundamentals_file_path(previous_day))
-    """
 
 
 def start_daily_momentum():

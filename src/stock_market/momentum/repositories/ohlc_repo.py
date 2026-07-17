@@ -1,5 +1,6 @@
 import logging
 from datetime import date
+from pathlib import Path
 
 import pandas as pd
 from sqlalchemy.orm import Session
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class DBPopulation:
-    def __init__(self, session: Session, filename: str) -> None:
+    def __init__(self, session: Session, filename: str | Path) -> None:
         self.session = session
         self.filename = filename
 
