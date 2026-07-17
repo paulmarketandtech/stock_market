@@ -143,7 +143,7 @@ class ExtraMetricsUpdater:
             record.fifty_two_week_high_value = newHighValue
             record.date_52week_high = self.previous_day
             logger.info(
-                "NEW HIGH. Updated %s: high %d → %d on %s",
+                "NEW HIGH. Updated %s: high %f → %f on %s",
                 ticker,
                 currentHigh,
                 newHighValue,
@@ -154,7 +154,7 @@ class ExtraMetricsUpdater:
             record.fifty_two_week_low_value = newLowValue
             record.date_52week_low = self.previous_day
             logger.info(
-                "NEW LOW. Updated %s: low %d → %d on %s",
+                "NEW LOW. Updated %s: low %f → %f on %s",
                 ticker,
                 currentLow,
                 newLowValue,

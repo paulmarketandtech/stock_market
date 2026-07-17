@@ -59,6 +59,7 @@ def fetch_ohlc_batch(tickers: list[str], previous_day: date) -> pd.DataFrame:
         return pd.DataFrame()
 
     combined = pd.concat(frames).reset_index().rename(columns=COLUMN_RENAME)
+    combined = combined.dropna(subset=["date", "open", "high", "low", "close"])
     return combined[["ticker", "date", "open", "high", "low", "close", "volume"]]
 
 
