@@ -32,7 +32,7 @@ def start_daily_momentum():
         previous_day = get_previous_day()
 
         logger.info(
-            "Starting working on %d. Number of ticker: %s",
+            "Starting working on %s. Number of ticker: %d",
             previous_day,
             len(list_of_tickers),
         )

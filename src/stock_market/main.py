@@ -30,10 +30,8 @@ def main():
     args = parser.parse_args()
 
     if args.pipeline == "daily":
-        print("dailyaaa")
         daily_momentum.start_daily_momentum()
     elif args.pipeline == "extra":
-        print("extraeee")
         extra_metrics.start_daily_extra_metrics()
 
 

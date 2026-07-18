@@ -15,7 +15,7 @@ def start_daily_extra_metrics():
         list_of_tickers = get_large_cap_tickers(session)
 
         logger.info(
-            "Starting working on extra metrics for date: %d. Number of ticker: %s",
+            "Starting working on extra metrics for date: %s. Number of ticker: %d",
             previous_day,
             len(list_of_tickers),
         )
