@@ -149,7 +149,7 @@ def get_etfs_returns(session, previous_day: date):
 
 
 def get_returns_for_selected_tickers(
-    previous_day: date, list_of_tickers: list[str]
+    session, previous_day: date, list_of_tickers: list[str]
 ) -> pd.DataFrame:
     """stock_data stores all tickers data.
     User provides list of any tickers
@@ -179,8 +179,12 @@ def get_DFs_for_etfs_tickers(session, previous_day: date) -> list[pd.DataFrame]:
     list_of_commodities = get_commodities_tickers(session)
     list_of_etfs = get_etfs_tickers(session)
 
-    df_indexes = get_returns_for_selected_tickers(previous_day, list_of_indexes)
-    df_commodities = get_returns_for_selected_tickers(previous_day, list_of_commodities)
-    df_etfs = get_returns_for_selected_tickers(previous_day, list_of_etfs)
+    df_indexes = get_returns_for_selected_tickers(
+        session, previous_day, list_of_indexes
+    )
+    df_commodities = get_returns_for_selected_tickers(
+        session, previous_day, list_of_commodities
+    )
+    df_etfs = get_returns_for_selected_tickers(session, previous_day, list_of_etfs)
 
     return [df_indexes, df_commodities, df_etfs]
