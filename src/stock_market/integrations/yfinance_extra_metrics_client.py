@@ -34,10 +34,8 @@ def fetch_stock_data(symbol_list: list[str]) -> pd.DataFrame:
     for i, ticker in enumerate(symbol_list):
         time.sleep(0.2)
         if (i + 1) % 300 == 0:
-            logger.info("Processing %d", (i + 1) / len(symbol_list))
+            logger.info(f"Processing {i + 1}/{len(symbol_list)}")
             logger.info(datetime.now() - start)
-            print(f"Processing {i + 1}/{len(symbol_list)}")
-            print(datetime.now() - start)
 
         try:
             info = yf.Ticker(ticker).info
