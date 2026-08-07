@@ -98,7 +98,7 @@ async def weekly_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
     room_id = job_data["room_id"]
 
     try:
-        weekly_returns_msg = f"{best_worst} performing stocks last week\n\n"
+        weekly_returns_msg = f"{best_worst} performing stocks this week\n\n"
 
         for _, row in df.iterrows():
             ticker = row["ticker"]
@@ -183,7 +183,7 @@ def tg_sequence(session, previous_day: date):
     if today.lower() == "tuesday":
         job_queue.run_once(
             tuesday_number_of_tickers,
-            1,
+            4,
             data={
                 "session": session,
                 "chat_id": chat_id,
@@ -203,7 +203,7 @@ def tg_sequence(session, previous_day: date):
             time.sleep(0.5)
             job_queue.run_once(
                 weekly_indexes_commodities_etfs_returns,
-                1,
+                4,
                 data={
                     "string": string,
                     "df": df,
@@ -220,7 +220,7 @@ def tg_sequence(session, previous_day: date):
         time.sleep(0.5)
         job_queue.run_once(
             weekly_best_worst_returns,
-            4,
+            6,
             data={
                 "best_worst": string,
                 "df": df,
@@ -237,7 +237,7 @@ def tg_sequence(session, previous_day: date):
         time.sleep(0.5)
         job_queue.run_once(
             ytd_best_worst_returns,
-            7,
+            9,
             data={
                 "best_worst": string,
                 "df": df,
@@ -254,7 +254,7 @@ def tg_sequence(session, previous_day: date):
         time.sleep(0.5)
         job_queue.run_once(
             last_correction_best_worst_returns,
-            9,
+            12,
             data={
                 "best_worst": string,
                 "df": df,
@@ -267,7 +267,7 @@ def tg_sequence(session, previous_day: date):
 
     job_queue.run_once(
         market_breadth_screen,
-        11,
+        15,
         data={
             "date": previous_day,
             "chat_id": chat_id,
