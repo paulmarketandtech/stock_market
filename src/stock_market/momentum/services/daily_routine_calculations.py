@@ -36,26 +36,3 @@ def count_daily_routine_returns(
     count_returns_from_given_date_to_date(
         session, previous_day, yesterday_data, correction_date, "last_correction"
     )
-
-
-"""
-implement this logic above for ytd/last_correction
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("pipeline", choices=["daily", "extra-metrics"])
-    args = parser.parse_args()
-
-    logging.basicConfig(level=logging.INFO)
-    try:
-        if args.pipeline == "daily":
-            run_daily_momentum()
-        elif args.pipeline == "extra-metrics":
-            run_extra_metrics()
-    except Exception:
-        logger.exception("%s pipeline failed", args.pipeline)
-        telegram_momentum_bot.send_error_alert(f"{args.pipeline} run failed, check logs")
-        raise
-
-if __name__ == "__main__":
-    main()
-"""

@@ -66,22 +66,3 @@ def creating_list_of_tickers_nyse(session) -> list[str]:
         .all()
     ]
     return nyse_list_of_tickers
-
-
-"""
-helper functions
-
-def populate_table(session, tickers):
-    print(f"len of tickers list: {tickers}")
-
-    for ticker in tickers:
-        stock_price = ListOfETFs(ticker=ticker)
-        session.add(stock_price)
-
-    session.commit()
-    print("DB Populated")
-    stock_data = session.query(ListOfETFs.ticker).all()
-
-list_of_tickers_nasdaq = creating_list_of_tickers_nasdaq()
-list_of_tickers_nyse = creating_list_of_tickers_nyse()
-"""
