@@ -105,6 +105,7 @@ def download_all_ohlc(
     return combined, missing
 
 
+# TODO: not in use? to be deleted
 # ====================== 2. .info (Fundamentals) ======================
 def fetch_fundamentals(ticker: str) -> dict:
     info = yf.Ticker(ticker).info
