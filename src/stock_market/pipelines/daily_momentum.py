@@ -52,6 +52,3 @@ def start_daily_momentum():
         tg_main.tg_sequence(session, previous_day)
 
         logger.info("Daily proccess done.")
-
-    # DONT run fundamentals for now. have to write the whole logic of DB populating
-    # run_fundamentals_extract(session, previous_day, list_of_tickers[:2])
