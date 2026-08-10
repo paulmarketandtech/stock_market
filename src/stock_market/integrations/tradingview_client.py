@@ -34,8 +34,8 @@ def nasdaq_counting_and_populating_DB_with_SMAs(
                 ticker=ticker.split(":")[1], date=last_date
             ).update({"ma200": indicator.indicators["SMA200"]})
             session.commit()
-        except AttributeError as e:
-            logger.error("Error with %s in SMAs: %s", ticker, e, exc_info=True)
+        except AttributeError:
+            logger.exception("Error with %s in SMAs.", ticker)
 
     logger.info("Nasdaq SMAa populated successfully.")
 
@@ -66,8 +66,8 @@ def nyse_counting_and_populating_DB_with_SMAs(
                 ticker=ticker.split(":")[1], date=last_date
             ).update({"ma200": indicator.indicators["SMA200"]})
             session.commit()
-        except AttributeError as e:
-            logger.error("Error with %s in SMAs: %s", ticker, e, exc_info=True)
+        except AttributeError:
+            logger.exception("Error with %s in SMAs.", ticker)
 
     logger.info("Nyse SMAa populated successfully.")
 

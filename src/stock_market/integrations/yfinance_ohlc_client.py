@@ -1,6 +1,6 @@
 import logging
 import time
-from datetime import date
+from datetime import UTC, date, datetime
 
 import pandas as pd
 import yfinance as yf
@@ -30,7 +30,7 @@ def fetch_ohlc_batch(tickers: list[str], previous_day: date) -> pd.DataFrame:
     raw = yf.download(
         tickers=tickers,
         start=previous_day,
-        end=date.today(),
+        end=datetime.now(UTC).date(),
         group_by="ticker",
         auto_adjust=False,
         threads=False,
@@ -74,7 +74,6 @@ def download_all_ohlc(
     missing: list[str] = []
 
     for i in range(0, len(tickers), batch_size):
-
         batch = tickers[i : i + batch_size]
         logger.info("Fetching OHLC batch %d-%d of %d", i, i + len(batch), len(tickers))
 

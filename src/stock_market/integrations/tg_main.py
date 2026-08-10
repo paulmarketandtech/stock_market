@@ -1,7 +1,7 @@
 import logging
 import os
 import time
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 
 from telegram import Update
 from telegram.ext import Application, ContextTypes
@@ -36,8 +36,8 @@ async def tuesday_number_of_tickers(context: ContextTypes.DEFAULT_TYPE):
             text=msg,
         )
         logger.info("tuesday_number_of_tickers successly sent")
-    except Exception as e:
-        logger.error("tuesday_number_of_tickers Error: %s", e)
+    except Exception:
+        logger.exception("tuesday_number_of_tickers Error.")
 
 
 async def ytd_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
@@ -61,8 +61,8 @@ async def ytd_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
             text=ytd_returns_msg,
         )
         logger.info("ytd_best_worst_returns successly sent")
-    except Exception as e:
-        logger.error("ytd_best_worst_returns Error: %s", e)
+    except Exception:
+        logger.exception("ytd_best_worst_returns Error.")
 
 
 async def last_correction_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
@@ -86,8 +86,8 @@ async def last_correction_best_worst_returns(context: ContextTypes.DEFAULT_TYPE)
             text=correction_returns_msg,
         )
         logger.info("last_correction_best_worst_returns successly sent")
-    except Exception as e:
-        logger.error("last_correction_best_worst_returns Error: %s", e)
+    except Exception:
+        logger.exception("last_correction_best_worst_returns Error.")
 
 
 async def weekly_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
@@ -111,8 +111,8 @@ async def weekly_best_worst_returns(context: ContextTypes.DEFAULT_TYPE):
             text=weekly_returns_msg,
         )
         logger.info("weekly_best_worst_returns successly sent")
-    except Exception as e:
-        logger.error("weekly_best_worst_returns Error: %s", e)
+    except Exception:
+        logger.exception("weekly_best_worst_returns Error.")
 
 
 async def weekly_indexes_commodities_etfs_returns(context: ContextTypes.DEFAULT_TYPE):
@@ -136,8 +136,8 @@ async def weekly_indexes_commodities_etfs_returns(context: ContextTypes.DEFAULT_
             text=weekly_etfs_msg,
         )
         logger.info("weekly_indexes_commodities_etfs_returns successly sent")
-    except Exception as e:
-        logger.error("weekly_indexes_commodities_etfs_returns Error: %s", e)
+    except Exception:
+        logger.exception("weekly_indexes_commodities_etfs_returns Error.")
 
 
 async def market_breadth_screen(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -153,8 +153,8 @@ async def market_breadth_screen(context: ContextTypes.DEFAULT_TYPE) -> None:
             photo=f"{os.getenv('MARKET_BREADTH_SCREENS_FOLDER')}/{str(previous_day).replace('-', '')}.png",
         )
         logger.info("market_breadth successly sent")
-    except Exception as e:
-        logger.error("market_breadth Error: %s", e)
+    except Exception:
+        logger.exception("market_breadth Error.")
     context.application.stop_running()
 
 
@@ -179,7 +179,7 @@ def tg_sequence(session, previous_day: date):
 
     # =========== week opening msg ================
 
-    today = datetime.today().strftime("%A")
+    today = datetime.now(UTC).date().strftime("%A")
     if today.lower() == "tuesday":
         job_queue.run_once(
             tuesday_number_of_tickers,
@@ -193,7 +193,7 @@ def tg_sequence(session, previous_day: date):
 
     # =========== saturday etfs msgs ================
 
-    today = datetime.today().strftime("%A")
+    today = datetime.now(UTC).date().strftime("%A")
     if today.lower() == "saturday":
         etfs_list_of_dfs = get_DFs_for_etfs_tickers(session, previous_day)
 

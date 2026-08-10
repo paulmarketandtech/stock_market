@@ -46,14 +46,12 @@ def above_below_sma_calculations(
             )
             session.commit()
 
-        except Exception as e:
-            logger.error(
-                "Error in counting above/below SMAs for ticker %s: %s",
+        except Exception:
+            logger.exception(
+                "Error in counting above/below SMAs for ticker %s.",
                 ticker,
-                e,
-                exc_info=True,
             )
 
-            session.rollback()  # good practice so the next ticker starts clean
+            # session.rollback()  # good practice so the next ticker starts clean
 
     logger.info("Above/below SMAs counted.")

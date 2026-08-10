@@ -40,8 +40,8 @@ class DBPopulation:
             self.session.commit()
             logger.info("DB Populated")
 
-        except Exception as e:
-            logger.error("Database population failed %s: ", e, exc_info=True)
+        except Exception:
+            logger.exception("Database population failed")
 
 
 def populate_db_from_files(session: Session, previous_day: date) -> None:
