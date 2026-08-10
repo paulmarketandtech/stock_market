@@ -38,8 +38,8 @@ def count_returns_from_given_date_to_date(
             session.query(StockData).filter_by(ticker=symbol, date=previous_day).update(
                 {ytd_or_correction: pct_return_result}
             )
-        except Exception as e:
-            logger.error("%s, %s did not work out. Error: %s", from_date, symbol, e)
+        except Exception:
+            logger.exception("%s, %s did not work out. Error", from_date, symbol)
 
     session.commit()
     logger.info("Done count_returns_from_given_date_to_date")

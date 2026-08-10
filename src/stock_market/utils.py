@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 from stock_market.db_hub.models import (
     AllTickersMonthlyUpdate,
@@ -18,7 +18,7 @@ but in the future 2B will probably be gone and 5B will be dynamic
 
 
 def get_previous_day() -> date:
-    return date.today() - timedelta(days=1)
+    return datetime.now(UTC).date() - timedelta(days=1)
 
 
 def get_commodities_tickers(session) -> list[str]:

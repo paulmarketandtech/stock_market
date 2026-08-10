@@ -1,5 +1,5 @@
 import logging
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 from stock_market.db_hub.models import StockData
 from stock_market.momentum.services.standard_returns.helper_functions import (
@@ -20,15 +20,17 @@ def get_previous_friday(session):
         "saturday": 8,
     }
 
-    today = datetime.today().strftime("%A")
-    last_friday = date.today() - timedelta(days=days_shift[today.lower()])
+    today = datetime.now(UTC).date().strftime("%A")
+    last_friday = datetime.now(UTC).date() - timedelta(days=days_shift[today.lower()])
 
     how_many_records = (
         session.query(StockData.ticker).filter(StockData.date == last_friday).all()
     )
 
     if len(how_many_records) == 0:
-        last_friday = date.today() - timedelta(days=days_shift[today.lower()] + 1)
+        last_friday = datetime.now(UTC).date() - timedelta(
+            days=days_shift[today.lower()] + 1
+        )
 
     return last_friday
 
@@ -37,7 +39,7 @@ def get_previous_friday(session):
 def get_four_weeks_ago_friday(session):
     """Looks for four weeks ago friday. if it was off then it takes thursday"""
 
-    four_weeks_ago_friday = date.today() - timedelta(days=29)
+    four_weeks_ago_friday = datetime.now(UTC).date() - timedelta(days=29)
     how_many_records_four_weeks_ago = (
         session.query(StockData.ticker)
         .filter(StockData.date == four_weeks_ago_friday)
@@ -45,7 +47,7 @@ def get_four_weeks_ago_friday(session):
     )
 
     if len(how_many_records_four_weeks_ago) == 0:
-        four_weeks_ago_friday = date.today() - timedelta(days=30)
+        four_weeks_ago_friday = datetime.now(UTC).date() - timedelta(days=30)
 
     return four_weeks_ago_friday
 
@@ -79,8 +81,8 @@ def count_returns_from_fridays_to_date(
             session.query(StockData).filter_by(ticker=symbol, date=previous_day).update(
                 {"weekly_change": pct_return_result}
             )
-        except Exception as e:
-            logger.error("%s, %s did not work out. Error: %s", friday_date, symbol, e)
+        except Exception:
+            logger.exception("%s, %s did not work out. Error.", friday_date, symbol)
 
     session.commit()
     logger.info("Done count_returns_from_fridays_to_date")

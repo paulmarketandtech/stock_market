@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
-from stock_market.db_hub.session import init_db  # noqa: E402
-from stock_market.pipelines import daily_momentum, extra_metrics  # noqa: E402
+from stock_market.db_hub.session import init_db
+from stock_market.pipelines import daily_momentum, extra_metrics
 
 logging.basicConfig(
     level=logging.INFO,

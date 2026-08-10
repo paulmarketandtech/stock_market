@@ -56,8 +56,8 @@ def chart_creation(y1, y2, y3, x, previous_day: date):
         )
 
         logger.info("Chart created successfully.")
-    except Exception as e:
-        logger.error("Chart went wrong. Error: %s", e)
+    except Exception:
+        logger.exception("Chart went wrong. Error.")
 
 
 def chart_managing(session, previous_day):

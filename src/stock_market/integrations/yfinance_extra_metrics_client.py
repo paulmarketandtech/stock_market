@@ -1,6 +1,6 @@
 import logging
 import time
-from datetime import date, datetime
+from datetime import date
 
 import pandas as pd
 import yfinance as yf
@@ -29,12 +29,10 @@ def fetch_stock_data(symbol_list: list[str]) -> pd.DataFrame:
     rows = []
     all_fields = REQUIRED_FIELDS + OPTIONAL_FIELDS
 
-    start = datetime.now()
     for i, ticker in enumerate(symbol_list):
         time.sleep(0.2)
         if (i + 1) % 300 == 0:
             logger.info(f"Processing {i + 1}/{len(symbol_list)}")
-            logger.info(datetime.now() - start)
 
         try:
             info = yf.Ticker(ticker).info
@@ -57,16 +55,12 @@ def fetch_stock_data(symbol_list: list[str]) -> pd.DataFrame:
 
             rows.append(row)
 
-        except Exception as e:
-            logger.error(
-                "Error %s while downloading from YF: %s", ticker, e, exc_info=True
-            )
+        except Exception:
+            logger.exception("Error %s while downloading from YF.", ticker)
             continue
 
     df = pd.DataFrame(rows)
 
-    end = datetime.now()
-    logger.info("total time: %s", (end - start))
     return df
 
 
@@ -163,8 +157,8 @@ class ExtraMetricsUpdater:
             try:
                 with self.session.begin_nested():
                     self._process_ticker(row, records)
-            except Exception as e:
-                logger.error("Skipping %s. Error: %s", row["ticker"], e, exc_info=True)
+            except Exception:
+                logger.exception("Skipping %s. Error.", row["ticker"])
         self.session.commit()
 
 
