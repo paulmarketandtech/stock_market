@@ -1,7 +1,10 @@
 from sqlalchemy.orm import Session
 
-from stock_market.integrations.tradingview_client import sma_calculations
+from stock_market.integrations.tradingview_client import tradingview_sma_db_population
 from stock_market.momentum.services.charts_market_breadth import chart_managing
+from stock_market.momentum.services.market_breadth_calc import (
+    above_below_sma_calculations,
+)
 from stock_market.momentum.services.standard_returns.market_breadth_counting import (
     counting_above_below_SMAs,
 )
@@ -18,13 +21,14 @@ def market_breadth_manager(
     list_of_tickers_nasdaq = creating_list_of_tickers_nasdaq(session)
     list_of_tickers_nyse = creating_list_of_tickers_nyse(session)
 
-    sma_calculations(
+    tradingview_sma_db_population(
         session,
         previous_day,
-        list_of_tickers,
         list_of_tickers_nasdaq,
         list_of_tickers_nyse,
     )
+
+    above_below_sma_calculations(session, previous_day, list_of_tickers)
 
     counting_above_below_SMAs(session, previous_day, list_of_tickers)
     chart_managing(session, previous_day)
