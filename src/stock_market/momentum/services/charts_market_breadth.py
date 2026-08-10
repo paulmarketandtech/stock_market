@@ -38,7 +38,7 @@ def generate_y_and_x_values_for_chart(session):
 
 def chart_creation(y1, y2, y3, x, previous_day: date):
     try:
-        fig, ax = plt.subplots(figsize=(12, 8))
+        _, ax = plt.subplots(figsize=(12, 8))
 
         ax.plot(x, y1, linewidth=2.0, label="ma50")
         ax.plot(x, y2, linewidth=2.0, label="ma100")

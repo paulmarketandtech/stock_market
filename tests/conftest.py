@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 # Import your actual models so we can create the tables in the test DB
-from stock_market.db_hub.models import Base, StockData
+from stock_market.db_hub.models import Base
 
 
 @pytest.fixture(scope="function")

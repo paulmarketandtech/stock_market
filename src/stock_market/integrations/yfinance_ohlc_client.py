@@ -74,7 +74,6 @@ def download_all_ohlc(
     missing: list[str] = []
 
     for i in range(0, len(tickers), batch_size):
-
         batch = tickers[i : i + batch_size]
         logger.info("Fetching OHLC batch %d-%d of %d", i, i + len(batch), len(tickers))
 

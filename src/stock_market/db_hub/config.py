@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 
 DATABASE_URL = os.getenv("DB_STORAGE_URL")
 if not DATABASE_URL:

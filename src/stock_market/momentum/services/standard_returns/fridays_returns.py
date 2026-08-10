@@ -1,6 +1,5 @@
 import logging
 from datetime import date, datetime, timedelta
-from typing import List, Tuple
 
 from stock_market.db_hub.models import StockData
 from stock_market.momentum.services.standard_returns.helper_functions import (
@@ -54,7 +53,7 @@ def get_four_weeks_ago_friday(session):
 def count_returns_from_fridays_to_date(
     session,
     previous_day: date,
-    yesterday_data: List[Tuple[str, float]],
+    yesterday_data: list[tuple[str, float]],
     friday_date: date,
 ) -> None:
     """Counts returns from

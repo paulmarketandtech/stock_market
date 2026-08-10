@@ -1,7 +1,6 @@
 import logging
 import time
 from datetime import date, datetime
-from typing import Dict
 
 import pandas as pd
 import yfinance as yf
@@ -94,7 +93,7 @@ class ExtraMetricsUpdater:
                 date_short_interest=row["dateShortInterest"],
             )
         )
-        logging.info("NEW TICKER. Inserted %s", row["ticker"])
+        logger.info("NEW TICKER. Inserted %s", row["ticker"])
 
     def _upsert_metadata(
         self, row: pd.Series, record: ExtraStockMetricsAndStats
@@ -146,7 +145,7 @@ class ExtraMetricsUpdater:
     def _process_ticker(
         self,
         row: pd.Series,
-        records: Dict[str, ExtraStockMetricsAndStats],
+        records: dict[str, ExtraStockMetricsAndStats],
     ) -> None:
         ticker = row["ticker"]
         if ticker not in records:
