@@ -4,8 +4,11 @@ from datetime import date
 from stock_market.config import ohlc_file_path
 from stock_market.db_hub.session import get_session
 from stock_market.integrations import tg_main, yfinance_ohlc_client
-from stock_market.momentum.repositories import market_breadth_repo, ohlc_repo
-from stock_market.momentum.services import daily_routine_calculations
+from stock_market.momentum.repositories import (
+    daily_routine_calculations_repo,
+    market_breadth_repo,
+    ohlc_repo,
+)
 from stock_market.storage.parquet_io import write_parquet
 from stock_market.utils import (
     LAST_CORRECTION_DATE,
@@ -41,7 +44,7 @@ def start_daily_momentum():
 
         ohlc_repo.populate_db_from_files(session, previous_day)
 
-        daily_routine_calculations.count_daily_routine_returns(
+        daily_routine_calculations_repo.count_daily_routine_returns(
             session, previous_day, YTD_DATE, LAST_CORRECTION_DATE
         )
 
