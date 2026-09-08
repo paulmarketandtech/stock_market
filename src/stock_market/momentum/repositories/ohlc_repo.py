@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 
 import pandas as pd
+from sqlalchemy import Boolean
 from sqlalchemy.orm import Session
 
 from stock_market.db_hub.models import StockData
@@ -20,8 +21,9 @@ class DBPopulation:
         return df
 
     def save_ohlc(self):
-        try:
-            df = self.read_parquet_file()
+        df = self.read_parquet_file()
+        logger.info("---------- DF in db population %d", len(df))
+        if not df.empty:
 
             for _, row in df.iterrows():
                 stock_price = StockData(
@@ -38,10 +40,12 @@ class DBPopulation:
             self.session.commit()
             logger.info("DB Populated")
 
-        except Exception:
+        else:
             logger.exception("Database population failed")
+            return False
+        return True
 
 
-def populate_db_from_files(session: Session, filename: Path) -> None:
+def populate_db_from_files(session: Session, filename: Path) -> bool:
     db_populating = DBPopulation(session, filename)
-    db_populating.save_ohlc()
+    return db_populating.save_ohlc()
