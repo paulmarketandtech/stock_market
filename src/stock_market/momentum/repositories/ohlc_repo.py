@@ -1,11 +1,9 @@
 import logging
-from datetime import date
 from pathlib import Path
 
 import pandas as pd
 from sqlalchemy.orm import Session
 
-from stock_market.config import ohlc_file_path
 from stock_market.db_hub.models import StockData
 
 logger = logging.getLogger(__name__)
@@ -44,7 +42,6 @@ class DBPopulation:
             logger.exception("Database population failed")
 
 
-def populate_db_from_files(session: Session, previous_day: date) -> None:
-    filename = ohlc_file_path(previous_day)
+def populate_db_from_files(session: Session, filename: Path) -> None:
     db_populating = DBPopulation(session, filename)
     db_populating.save_ohlc()

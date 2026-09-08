@@ -85,6 +85,9 @@ def download_all_ohlc(
             time.sleep(sleep_seconds)
             continue
 
+        if len(df) < (batch_size / 2):
+            return pd.DataFrame(), []
+
         if df.empty:
             missing.extend(batch)
         else:

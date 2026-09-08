@@ -42,16 +42,21 @@ def start_daily_momentum():
 
         run_ohlc_extract(list_of_tickers, previous_day)
 
-        ohlc_repo.populate_db_from_files(session, previous_day)
+        filename = ohlc_file_path(previous_day)
+        if filename:
 
-        daily_routine_calculations_repo.count_daily_routine_returns(
-            session, previous_day, YTD_DATE, LAST_CORRECTION_DATE
-        )
+            ohlc_repo.populate_db_from_files(session, filename)
 
-        market_breadth_repo.market_breadth_manager(
-            session, previous_day, list_of_tickers
-        )
+            daily_routine_calculations_repo.count_daily_routine_returns(
+                session, previous_day, YTD_DATE, LAST_CORRECTION_DATE
+            )
 
-        tg_main.tg_sequence(session, previous_day)
+            market_breadth_repo.market_breadth_manager(
+                session, previous_day, list_of_tickers
+            )
 
-        logger.info("Daily proccess done.")
+            tg_main.tg_sequence(session, previous_day)
+
+            logger.info("Daily proccess done.")
+
+        logger.warning("A lot of missing data - probably a bank holiday")
