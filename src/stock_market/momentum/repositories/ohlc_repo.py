@@ -2,7 +2,6 @@ import logging
 from pathlib import Path
 
 import pandas as pd
-from sqlalchemy import Boolean
 from sqlalchemy.orm import Session
 
 from stock_market.db_hub.models import StockData
@@ -21,8 +20,8 @@ class DBPopulation:
         return df
 
     def save_ohlc(self):
+        """There's no try/except because if the file is missing then it will crush the process as desired"""
         df = self.read_parquet_file()
-        logger.info("---------- DF in db population %d", len(df))
         if not df.empty:
 
             for _, row in df.iterrows():
